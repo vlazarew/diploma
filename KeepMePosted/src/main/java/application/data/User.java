@@ -1,6 +1,9 @@
 package application.data;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,7 +12,9 @@ import javax.persistence.Table;
 
 @Data
 @Entity
-@Table(name = "Users")
+@RequiredArgsConstructor
+//@NoArgsConstructor
+@Table(name = "users")
 public class User {
 
     @Id
@@ -26,14 +31,15 @@ public class User {
     private Boolean isAdmin = false;
     private Boolean notified = false;
 
+    @Autowired
     public User(Long chatId, Integer stateId) {
         this.chatId = chatId;
         this.stateId = stateId;
     }
-
-    public User(Long chatId, Integer stateId, Boolean isAdmin) {
-        this.chatId = chatId;
-        this.stateId = stateId;
-        this.isAdmin = isAdmin;
-    }
+//
+//    public User(Long chatId, Integer stateId, Boolean isAdmin) {
+//        this.chatId = chatId;
+//        this.stateId = stateId;
+//        this.isAdmin = isAdmin;
+//    }
 }

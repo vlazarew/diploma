@@ -4,8 +4,10 @@ import application.data.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -18,6 +20,7 @@ import java.util.List;
 @Component
 @PropertySource("classpath:telegram.properties")
 public class TelegramBot extends TelegramLongPollingBot {
+
 
     private static final Logger LOGGER = LogManager.getLogger(TelegramBot.class);
     private static final String BROADCAST = "broadcast ";

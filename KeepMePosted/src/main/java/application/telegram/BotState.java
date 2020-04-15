@@ -1,5 +1,7 @@
 package application.telegram;
 
+import application.data.UserRepository;
+import application.service.UserService;
 import application.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -41,7 +43,7 @@ public enum BotState {
 
         @Override
         public BotState nextState() {
-            return Approved;
+            return next;
         }
     }, Approved(false) {
         @Override
@@ -56,7 +58,7 @@ public enum BotState {
     };
 
     private static BotState[] states;
-    private boolean inputNeeded;
+    private final boolean inputNeeded;
 
     @Autowired
     BotState() {
@@ -104,4 +106,5 @@ public enum BotState {
 
     public abstract BotState nextState();
 
+    public UserService userService;
 }
