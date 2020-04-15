@@ -1,14 +1,18 @@
-package telegram;
+package application.telegram;
 
-import data.User;
+import application.data.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import service.UserService;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import application.service.UserService;
+
+import java.util.List;
 
 
 @Component
@@ -108,6 +112,35 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
 
         return false;
+    }
+
+    private void sendMessage(long chatId, String text) {
+        SendMessage message = new SendMessage().setChatId(chatId).setText(text);
+
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void broadcast(String text) {
+        List<User> users = userService.findAllUsers();
+        users.forEach(user -> sendMessage(user.getChatId(), text));
+    }
+
+    private void listUsers(User admin) {
+        StringBuilder stringBuilder = new StringBuilder("Список всех пользователей:\r\n");
+        List<User> users = userService.findAllUsers();
+
+        users.forEach(user -> stringBuilder.append(user.getId())
+                .append(' ')
+                .append(user.getPhone())
+                .append(' ')
+                .append(user.getEmail())
+                .append("\r\n"));
+
+        sendMessage(admin.getChatId(), stringBuilder.toString());
     }
 
 }

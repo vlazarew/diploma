@@ -1,15 +1,14 @@
-package notification;
+package application.notification;
 
-import data.User;
+import application.data.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import service.UserService;
+import application.service.UserService;
 
-import java.lang.ref.SoftReference;
 import java.util.List;
 
 @Component

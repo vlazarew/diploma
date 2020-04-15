@@ -1,9 +1,9 @@
-package telegram;
+package application.telegram;
 
-import lombok.Data;
+import application.utils.Utils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import utils.Utils;
 
 //@Data
 public enum BotState {
@@ -58,6 +58,7 @@ public enum BotState {
     private static BotState[] states;
     private boolean inputNeeded;
 
+    @Autowired
     BotState() {
         this.inputNeeded = true;
     }

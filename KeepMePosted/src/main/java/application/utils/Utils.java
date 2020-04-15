@@ -1,4 +1,4 @@
-package utils;
+package application.utils;
 
 import org.apache.commons.validator.EmailValidator;
 

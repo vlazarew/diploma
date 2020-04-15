@@ -1,7 +1,7 @@
-package service;
+package application.service;
 
-import data.User;
-import data.UserRepository;
+import application.data.User;
+import application.data.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

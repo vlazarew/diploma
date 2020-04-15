@@ -1,6 +1,6 @@
-package telegram;
+package application.telegram;
 
-import data.User;
+import application.data.User;
 import lombok.Data;
 
 @Data
