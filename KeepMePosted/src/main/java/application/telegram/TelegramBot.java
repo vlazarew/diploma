@@ -1,14 +1,12 @@
 package application.telegram;
 
 import application.data.model.TelegramUpdate;
-import application.data.model.User;
+import application.service.TelegramUpdateService;
 import application.utils.handler.TelegramMessageHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -17,12 +15,10 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import application.service.TelegramUpdateService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,9 +34,13 @@ public class TelegramBot extends TelegramLongPollingBot {
 //    private static final String BROADCAST = "broadcast ";
 //    private static final String LIST_USERS = "users";
 
-    public static final String HELLO_BUTTON = "Hello";
+    //region Кнопки в приложении
     public static final String START_COMMAND = "/start";
-    public static final String HELP_BUTTON = "Help";
+
+    public static final String HELLO_BUTTON = "Привет";
+    public static final String REGISTER_BUTTON = "Зарегистрироваться";
+    public static final String HELP_BUTTON = "Помощь";
+    //endregion
 
     @Getter
     @Value("${bot.name}")
@@ -91,6 +91,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         KeyboardRow keyboardFirstRow = new KeyboardRow();
         keyboardFirstRow.add(new KeyboardButton(HELLO_BUTTON));
+        keyboardFirstRow.add(new KeyboardButton(REGISTER_BUTTON));
 
         KeyboardRow keyboardSecondRow = new KeyboardRow();
         keyboardSecondRow.add(new KeyboardButton(HELP_BUTTON));

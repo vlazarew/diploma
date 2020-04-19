@@ -1,13 +1,7 @@
 package application.service;
 
-import application.data.model.TelegramChat;
-import application.data.model.TelegramMessage;
-import application.data.model.TelegramUpdate;
-import application.data.model.User;
-import application.data.repository.TelegramChatRepository;
-import application.data.repository.TelegramMessageRepository;
-import application.data.repository.TelegramUpdateRepository;
-import application.data.repository.UserRepository;
+import application.data.model.*;
+import application.data.repository.*;
 import application.utils.transformer.Transformer;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -17,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Contact;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -32,11 +27,13 @@ public class TelegramUpdateService {
     Transformer<Message, TelegramMessage> messageTelegramMessageTransformer;
     Transformer<org.telegram.telegrambots.meta.api.objects.User, User> userToUserTransformer;
     Transformer<Chat, TelegramChat> chatTelegramChatTransformer;
+    Transformer<Contact, TelegramContact> contactTelegramContactTransformer;
 
     TelegramChatRepository telegramChatRepository;
     TelegramMessageRepository telegramMessageRepository;
     TelegramUpdateRepository telegramUpdateRepository;
     UserRepository userRepository;
+    TelegramContactRepository telegramContactRepository;
 
     // Турбо метод, записывающий все изменения, которые пришли по апдейту
     public TelegramUpdate save(Update update) {
@@ -53,10 +50,18 @@ public class TelegramUpdateService {
                     return telegramChatRepository.save(transformedChat);
                 });
 
+        TelegramContact telegramContact = telegramContactRepository.findById(update.getMessage().getFrom().getId())
+                .orElseGet(() -> {
+                   TelegramContact transformedContact = contactTelegramContactTransformer.transform(update.getMessage().getContact());
+                   transformedContact.setUser(telegramUser);
+                   return telegramContactRepository.save(transformedContact);
+                });
+
         // Запись истории сообщений
         TelegramMessage telegramMessage = messageTelegramMessageTransformer.transform(update.getMessage());
         telegramMessage.setFrom(telegramUser);
         telegramMessage.setChat(telegramChat);
+        telegramMessage.setContact(telegramContact);
         TelegramMessage savedTelegramMessage = telegramMessageRepository.save(telegramMessage);
 
         // Сохраняем все наши обновления

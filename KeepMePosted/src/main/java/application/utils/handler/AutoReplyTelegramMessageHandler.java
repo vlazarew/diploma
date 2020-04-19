@@ -23,7 +23,8 @@ public class AutoReplyTelegramMessageHandler implements TelegramMessageHandler {
     public void handle(TelegramUpdate telegramUpdate) {
         if (telegramUpdate.getMessage().getText().startsWith(TelegramBot.START_COMMAND) ||
                 telegramUpdate.getMessage().getText().startsWith(TelegramBot.HELP_BUTTON) ||
-                telegramUpdate.getMessage().getText().startsWith(TelegramBot.HELLO_BUTTON)) {
+                telegramUpdate.getMessage().getText().startsWith(TelegramBot.HELLO_BUTTON) ||
+                telegramUpdate.getMessage().getText().startsWith(TelegramBot.REGISTER_BUTTON)) {
             return;
         }
 
