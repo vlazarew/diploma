@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class User {
+public class TelegramUser {
 
     @Id
     Integer id;
@@ -22,11 +22,13 @@ public class User {
     LocalDateTime creationDate;
     String userName;
     Boolean bot;
+    Boolean registered;
     String firstName;
     String lastName;
     String languageCode;
     String phone;
     String email;
+    UserStatus status;
 
     @ManyToOne
     Person person;

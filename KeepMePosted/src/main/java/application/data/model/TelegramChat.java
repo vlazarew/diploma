@@ -27,5 +27,5 @@ public class TelegramChat {
     Boolean superGroupChat;
 
     @ManyToOne
-    User user;
+    TelegramUser user;
 }

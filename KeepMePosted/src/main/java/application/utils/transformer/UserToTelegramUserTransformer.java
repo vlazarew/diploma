@@ -1,15 +1,16 @@
 package application.utils.transformer;
 
+import application.data.model.TelegramUser;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.time.LocalDateTime;
 
 @Component
-public class UserToTelegramUserTransformer implements Transformer<User, application.data.model.User> {
+public class UserToTelegramUserTransformer implements Transformer<User, TelegramUser> {
     @Override
-    public application.data.model.User transform(User chat) {
-        return application.data.model.User.builder()
+    public TelegramUser transform(User chat) {
+        return TelegramUser.builder()
                 .id(chat.getId())
                 .creationDate(LocalDateTime.now())
                 .userName(chat.getUserName())

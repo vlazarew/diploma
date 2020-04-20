@@ -4,18 +4,11 @@ import application.data.model.*;
 import application.data.repository.*;
 import application.utils.transformer.Transformer;
 import lombok.AccessLevel;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Contact;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-
-import java.util.Optional;
+import org.telegram.telegrambots.meta.api.objects.*;
 
 @Service
 @Transactional
@@ -25,7 +18,7 @@ public class TelegramUpdateService {
 
     Transformer<Update, TelegramUpdate> updateTelegramUpdateTransformer;
     Transformer<Message, TelegramMessage> messageTelegramMessageTransformer;
-    Transformer<org.telegram.telegrambots.meta.api.objects.User, User> userToUserTransformer;
+    Transformer<User, TelegramUser> userToUserTransformer;
     Transformer<Chat, TelegramChat> chatTelegramChatTransformer;
     Transformer<Contact, TelegramContact> contactTelegramContactTransformer;
 
@@ -38,9 +31,17 @@ public class TelegramUpdateService {
     // Турбо метод, записывающий все изменения, которые пришли по апдейту
     public TelegramUpdate save(Update update) {
 
+        boolean isContact = update.getMessage().hasContact();
+        boolean isText = update.getMessage().hasText();
+        boolean isLocation = update.getMessage().hasLocation();
+
         // Находим персонажа или создаем его
-        User telegramUser = userRepository.findById(update.getMessage().getFrom().getId())
-                .orElseGet(() -> userRepository.save(userToUserTransformer.transform(update.getMessage().getFrom())));
+        TelegramUser telegramUser = userRepository.findById(update.getMessage().getFrom().getId())
+                .orElseGet(() -> {
+                    TelegramUser transformedUser = userToUserTransformer.transform(update.getMessage().getFrom());
+                    transformedUser.setStatus(UserStatus.getInitialStatus());
+                    return userRepository.save(transformedUser);
+                });
 
         // Находим или создаем чат
         TelegramChat telegramChat = telegramChatRepository.findById(update.getMessage().getChat().getId())
@@ -50,12 +51,21 @@ public class TelegramUpdateService {
                     return telegramChatRepository.save(transformedChat);
                 });
 
-        TelegramContact telegramContact = telegramContactRepository.findById(update.getMessage().getFrom().getId())
-                .orElseGet(() -> {
-                   TelegramContact transformedContact = contactTelegramContactTransformer.transform(update.getMessage().getContact());
-                   transformedContact.setUser(telegramUser);
-                   return telegramContactRepository.save(transformedContact);
-                });
+        TelegramContact telegramContact = null;
+        if (isContact) {
+            // Сохранение контакта
+            telegramContact = telegramContactRepository.findById(update.getMessage().getFrom().getId())
+                    .orElseGet(() -> {
+                        TelegramContact transformedContact = contactTelegramContactTransformer.transform(update.getMessage().getContact());
+                        transformedContact.setUser(telegramUser);
+
+                        // Пользователю сохраняем номер телефона
+                        telegramUser.setPhone(transformedContact.getPhoneNumber());
+                        userRepository.save(telegramUser);
+
+                        return telegramContactRepository.save(transformedContact);
+                    });
+        }
 
         // Запись истории сообщений
         TelegramMessage telegramMessage = messageTelegramMessageTransformer.transform(update.getMessage());

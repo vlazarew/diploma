@@ -1,15 +1,15 @@
 package application.data.repository;
 
-import application.data.model.User;
+import application.data.model.TelegramUser;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import java.util.Optional;
 
 @RepositoryRestResource
-public interface UserRepository extends CrudRepository<User, Integer> {
+public interface UserRepository extends CrudRepository<TelegramUser, Integer> {
 
-    Optional<User> findById(Integer id);
+    Optional<TelegramUser> findById(Integer id);
 
 //    @Query("select u " +
 //            "from User u " +

@@ -6,7 +6,6 @@ import lombok.experimental.FieldDefaults;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
-import javax.persistence.criteria.CriteriaBuilder;
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,5 +27,5 @@ public class TelegramContact {
     String lastName;
 
     @OneToOne
-    User user;
+    TelegramUser user;
 }

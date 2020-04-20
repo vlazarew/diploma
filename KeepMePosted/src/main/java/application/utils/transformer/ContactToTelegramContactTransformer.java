@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 @Component
 public class ContactToTelegramContactTransformer implements Transformer<Contact, TelegramContact> {
 
-
     @Override
     public TelegramContact transform(Contact chat) {
         return TelegramContact.builder()

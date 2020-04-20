@@ -1,12 +1,11 @@
 package application.utils.handler;
 
 import application.data.model.TelegramUpdate;
-import application.data.model.User;
+import application.data.model.TelegramUser;
 import application.telegram.TelegramBot;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -20,15 +19,15 @@ public class HelloTelegramMessageHandler implements TelegramMessageHandler {
     TelegramBot telegramBot;
 
     @Override
-    public void handle(TelegramUpdate telegramUpdate) {
-        if (!telegramUpdate.getMessage().getText().startsWith(TelegramBot.START_COMMAND)
-                && !telegramUpdate.getMessage().getText().equals(TelegramBot.HELLO_BUTTON)) {
+    public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
+        if (!isText || (!telegramUpdate.getMessage().getText().startsWith(TelegramBot.START_COMMAND)
+                && !telegramUpdate.getMessage().getText().equals(TelegramBot.HELLO_BUTTON))) {
             return;
         }
 
         Long chatId = telegramUpdate.getMessage().getChat().getId();
-        User user = telegramUpdate.getMessage().getFrom();
-        String text = Stream.of("Привет, ", user.getLastName(), user.getFirstName())
+        TelegramUser telegramUser = telegramUpdate.getMessage().getFrom();
+        String text = Stream.of("Привет, ", telegramUser.getLastName(), telegramUser.getFirstName())
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining(" "));
         telegramBot.sendTextMessage(chatId, text);

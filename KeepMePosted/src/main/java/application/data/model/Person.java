@@ -2,7 +2,6 @@ package application.data.model;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import sun.security.util.Password;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

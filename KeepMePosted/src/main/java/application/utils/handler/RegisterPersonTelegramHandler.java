@@ -1,7 +1,9 @@
 package application.utils.handler;
 
 import application.data.model.TelegramUpdate;
-import application.data.model.User;
+import application.data.model.TelegramUser;
+import application.data.model.UserStatus;
+import application.data.repository.UserRepository;
 import application.telegram.TelegramBot;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,27 +25,71 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
     TelegramBot telegramBot;
+    UserRepository userRepository;
 
     @Override
-    public void handle(TelegramUpdate telegramUpdate) {
-        if (!telegramUpdate.getMessage().getText().startsWith(TelegramBot.REGISTER_BUTTON)) {
-            return;
+    public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
+        Long chatId = telegramUpdate.getMessage().getChat().getId();
+        TelegramUser user = telegramUpdate.getMessage().getFrom();
+        UserStatus status = user.getStatus();
+
+        if (isContact) {
+            askUsersEmail(chatId, user, "Введите свой e-mail адрес (обязательно)");
+        } else if (isText) {
+            String userAnswer = telegramUpdate.getMessage().getText();
+
+//            if (userAnswer.equals(TelegramBot.REGISTER_BUTTON)) {
+//                askUsersPhone(chatId, user);
+//            } else if (userAnswer.equals(TelegramBot.CANCEL_REGISTRATION_BUTTON)) {
+//                telegramBot.sendTextMessage(chatId, "Регистрация отменена");
+//            }else if ()
+
+            switch (userAnswer) {
+                case TelegramBot.REGISTER_BUTTON: {
+                    askUsersPhone(chatId, user);
+                    break;
+                }
+                case TelegramBot.NEXT_BUTTON: {
+                    if (status == UserStatus.VerifyPhone) {
+                        askUsersEmail(chatId, user, "Введите свой e-mail адрес (обязательно)");
+                    } else if (status == UserStatus.VerifyEmail) {
+                        checkUserEmail(chatId, user, telegramUpdate.getMessage().getText());
+                    }
+                    break;
+                }
+                case TelegramBot.CANCEL_REGISTRATION_BUTTON: {
+                    telegramBot.sendTextMessage(chatId, "Регистрация отменена");
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
         }
 
-        User user = telegramUpdate.getMessage().getFrom();
-        Long chatId = telegramUpdate.getMessage().getChat().getId();
-
-        String phone = askUsersPhone(chatId, user);
+        return;
     }
 
-    private String askUsersPhone(Long chatId, User user) {
+    private void askUsersPhone(Long chatId, TelegramUser user) {
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.enableMarkdown(true);
         sendMessage.setChatId(chatId);
         sendMessage.setText("Поделитесь номером телефона (опционально)");
 
-        //region Подготовка клавиатуры
+        sendMessage.setReplyMarkup(askUsersPhoneReplyKeyboardMarkup());
+
+        try {
+            telegramBot.execute(sendMessage);
+
+            user.setStatus(UserStatus.VerifyPhone);
+            userRepository.save(user);
+        } catch (TelegramApiException e) {
+            log.error(e);
+        }
+    }
+
+    private ReplyKeyboardMarkup askUsersPhoneReplyKeyboardMarkup() {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setSelective(true);
         replyKeyboardMarkup.setResizeKeyboard(true);
@@ -51,26 +97,69 @@ public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
 
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow firstKeyboardRow = new KeyboardRow();
-        firstKeyboardRow.add(new KeyboardButton("Поделиться номером телефона?").setRequestContact(true));
-        firstKeyboardRow.add(new KeyboardButton("Продолжить"));
+        firstKeyboardRow.add(new KeyboardButton(TelegramBot.SHARE_PHONE_NUMBER).setRequestContact(true));
+        firstKeyboardRow.add(new KeyboardButton(TelegramBot.NEXT_BUTTON));
 
         KeyboardRow secondKeyboardRow = new KeyboardRow();
-        secondKeyboardRow.add(new KeyboardButton("Отмена регистрации"));
+        secondKeyboardRow.add(new KeyboardButton(TelegramBot.CANCEL_REGISTRATION_BUTTON));
 
         keyboard.add(firstKeyboardRow);
         keyboard.add(secondKeyboardRow);
 
         replyKeyboardMarkup.setKeyboard(keyboard);
-        //endregion
 
-        sendMessage.setReplyMarkup(replyKeyboardMarkup);
+        return replyKeyboardMarkup;
+    }
+
+    private void askUsersEmail(Long chatId, TelegramUser user, String text) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.enableMarkdown(true);
+        sendMessage.setChatId(chatId);
+        sendMessage.setText(text);
+
+        sendMessage.setReplyMarkup(askUsersEmailReplyKeyboardMarkup());
 
         try {
             telegramBot.execute(sendMessage);
+
+            user.setStatus(UserStatus.VerifyEmail);
+            userRepository.save(user);
         } catch (TelegramApiException e) {
             log.error(e);
         }
-
-        return "test";
     }
+
+    private ReplyKeyboardMarkup askUsersEmailReplyKeyboardMarkup() {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        replyKeyboardMarkup.setSelective(true);
+        replyKeyboardMarkup.setResizeKeyboard(true);
+        replyKeyboardMarkup.setOneTimeKeyboard(false);
+
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        KeyboardRow firstKeyboardRow = new KeyboardRow();
+        firstKeyboardRow.add(new KeyboardButton(TelegramBot.CONFIRM_EMAIL));
+
+        KeyboardRow secondKeyboardRow = new KeyboardRow();
+        secondKeyboardRow.add(new KeyboardButton(TelegramBot.CANCEL_REGISTRATION_BUTTON));
+
+        keyboard.add(firstKeyboardRow);
+        keyboard.add(secondKeyboardRow);
+
+        replyKeyboardMarkup.setKeyboard(keyboard);
+
+        return replyKeyboardMarkup;
+    }
+
+    private void checkUserEmail(Long chatId, TelegramUser user, String text) {
+        if (EMailUtils.isValidEmailAddress(text)) {
+            telegramBot.sendTextMessage(chatId, "Успешная регистрация!");
+
+            user.setStatus(UserStatus.Registered);
+            user.setEmail(text);
+            userRepository.save(user);
+        } else {
+            askUsersEmail(chatId, user, "Введен некорректный email. Повторите ввод");
+        }
+    }
+
 }
