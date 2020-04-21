@@ -2,6 +2,7 @@ package application.utils.handler;
 
 import application.data.model.TelegramUpdate;
 import application.data.model.TelegramUser;
+import application.data.model.UserStatus;
 import application.telegram.TelegramBot;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class HelloTelegramMessageHandler implements TelegramMessageHandler {
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
+        // Если не текст или не кнопка "Привет" или старт приложения
         if (!isText || (!telegramUpdate.getMessage().getText().startsWith(TelegramBot.START_COMMAND)
                 && !telegramUpdate.getMessage().getText().equals(TelegramBot.HELLO_BUTTON))) {
             return;

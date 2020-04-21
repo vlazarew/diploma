@@ -22,21 +22,22 @@ public class AuthTelegramMessageHandler implements TelegramMessageHandler {
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
-        if (!isText || !telegramUpdate.getMessage().getText().startsWith(TelegramBot.START_COMMAND) ||
-                Objects.nonNull(telegramUpdate.getMessage().getFrom().getPerson())) {
-            return;
-        }
-
-        String authCode = telegramUpdate.getMessage().getText().replace(TelegramBot.START_COMMAND, "").trim();
-        personRepository.findByAuthCode(authCode)
-                .ifPresent(person -> {
-                    TelegramUser telegramUser = telegramUpdate.getMessage().getFrom();
-                    telegramUser.setPerson(person);
-                    userRepository.save(telegramUser);
-
-                    Long chatId = telegramUpdate.getMessage().getChat().getId();
-                    String text = "Вы были авторизованы как " + person.getName();
-                    telegramBot.sendTextMessage(chatId, text);
-                });
+        return;
+//        if (!isText || !telegramUpdate.getMessage().getText().startsWith(TelegramBot.START_COMMAND) ||
+//                Objects.nonNull(telegramUpdate.getMessage().getFrom().getPerson())) {
+//            return;
+//        }
+//
+//        String authCode = telegramUpdate.getMessage().getText().replace(TelegramBot.START_COMMAND, "").trim();
+//        personRepository.findByAuthCode(authCode)
+//                .ifPresent(person -> {
+//                    TelegramUser telegramUser = telegramUpdate.getMessage().getFrom();
+//                    telegramUser.setPerson(person);
+//                    userRepository.save(telegramUser);
+//
+//                    Long chatId = telegramUpdate.getMessage().getChat().getId();
+//                    String text = "Вы были авторизованы как " + person.getName();
+//                    telegramBot.sendTextMessage(chatId, text);
+//                });
     }
 }

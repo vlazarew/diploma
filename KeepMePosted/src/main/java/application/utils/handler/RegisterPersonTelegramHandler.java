@@ -38,30 +38,26 @@ public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
         } else if (isText) {
             String userAnswer = telegramUpdate.getMessage().getText();
 
-//            if (userAnswer.equals(TelegramBot.REGISTER_BUTTON)) {
-//                askUsersPhone(chatId, user);
-//            } else if (userAnswer.equals(TelegramBot.CANCEL_REGISTRATION_BUTTON)) {
-//                telegramBot.sendTextMessage(chatId, "Регистрация отменена");
-//            }else if ()
-
             switch (userAnswer) {
                 case TelegramBot.REGISTER_BUTTON: {
                     askUsersPhone(chatId, user);
                     break;
                 }
                 case TelegramBot.NEXT_BUTTON: {
-                    if (status == UserStatus.VerifyPhone) {
-                        askUsersEmail(chatId, user, "Введите свой e-mail адрес (обязательно)");
-                    } else if (status == UserStatus.VerifyEmail) {
-                        checkUserEmail(chatId, user, telegramUpdate.getMessage().getText());
-                    }
+                    askUsersEmail(chatId, user, "Введите свой e-mail адрес (обязательно)");
                     break;
                 }
                 case TelegramBot.CANCEL_REGISTRATION_BUTTON: {
                     telegramBot.sendTextMessage(chatId, "Регистрация отменена");
                     break;
                 }
+//                case TelegramBot.CONFIRM_EMAIL: {
+//                    checkUserEmail(chatId, user, telegramUpdate.getMessage().getText());
+//                }
                 default: {
+                    if (status==UserStatus.VerifyEmail){
+                        checkUserEmail(chatId, user, telegramUpdate.getMessage().getText());
+                    }
                     break;
                 }
             }
@@ -136,13 +132,13 @@ public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
         replyKeyboardMarkup.setOneTimeKeyboard(false);
 
         List<KeyboardRow> keyboard = new ArrayList<>();
-        KeyboardRow firstKeyboardRow = new KeyboardRow();
-        firstKeyboardRow.add(new KeyboardButton(TelegramBot.CONFIRM_EMAIL));
+//        KeyboardRow firstKeyboardRow = new KeyboardRow();
+//        firstKeyboardRow.add(new KeyboardButton(TelegramBot.CONFIRM_EMAIL));
 
         KeyboardRow secondKeyboardRow = new KeyboardRow();
         secondKeyboardRow.add(new KeyboardButton(TelegramBot.CANCEL_REGISTRATION_BUTTON));
 
-        keyboard.add(firstKeyboardRow);
+//        keyboard.add(firstKeyboardRow);
         keyboard.add(secondKeyboardRow);
 
         replyKeyboardMarkup.setKeyboard(keyboard);
@@ -152,11 +148,12 @@ public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
 
     private void checkUserEmail(Long chatId, TelegramUser user, String text) {
         if (EMailUtils.isValidEmailAddress(text)) {
-            telegramBot.sendTextMessage(chatId, "Успешная регистрация!");
-
             user.setStatus(UserStatus.Registered);
+            user.setRegistered(true);
             user.setEmail(text);
             userRepository.save(user);
+
+            telegramBot.sendTextMessage(chatId, "Успешная регистрация!");
         } else {
             askUsersEmail(chatId, user, "Введен некорректный email. Повторите ввод");
         }

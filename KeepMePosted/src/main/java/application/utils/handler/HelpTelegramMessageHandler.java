@@ -17,17 +17,14 @@ public class HelpTelegramMessageHandler implements TelegramMessageHandler {
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
+        // Если не текст и не кнопка "Помощь"
         if (!isText || !telegramUpdate.getMessage().getText().startsWith(TelegramBot.HELP_BUTTON)) {
             return;
         }
 
         Long chatId = telegramUpdate.getMessage().getChat().getId();
-        String text;
-        if (Objects.isNull(telegramUpdate.getMessage().getFrom().getPerson())) {
-            text = "Мы помогаем только авторизированным пользователям";
-        } else {
-            text = "Мы поможем тебе";
-        }
+        String text = telegramUpdate.getMessage().getFrom().getRegistered() ? "Мы поможем тебе" :
+                "Мы помогаем только авторизированным пользователям";
         telegramBot.sendTextMessage(chatId, text);
     }
 }

@@ -43,14 +43,28 @@ public class TelegramBot extends TelegramLongPollingBot {
     //region Кнопки в приложении
     public static final String START_COMMAND = "/start";
 
+    // Базовые кнопки
     public static final String HELLO_BUTTON = "Привет";
-    public static final String REGISTER_BUTTON = "Зарегистрироваться";
     public static final String HELP_BUTTON = "Помощь";
-    public static final String NEXT_BUTTON = "Продолжить";
+
+    // Кнопки регистрации
+    public static final String REGISTER_BUTTON = "Зарегистрироваться";
     public static final String CANCEL_REGISTRATION_BUTTON = "Отмена регистрации";
-    public static final String SETTINGS_BUTTON = "Настройки";
+    public static final String NEXT_BUTTON = "Продолжить";
     public static final String SHARE_PHONE_NUMBER = "Поделиться номером";
     public static final String CONFIRM_EMAIL = "Подтвердить e-mail";
+
+    // Кнопки настроек
+    public static final String SETTINGS_BUTTON = "Настройки";
+    public static final String NOTIFICATION_SETTINGS_BUTTON = "Настройки оповещений";
+
+    // Интеграция с погодой
+    public static final String WEATHER_SETTINGS_BUTTON = "Настройки рассылки погоды";
+    public static final String ACTIVATE_WEATHER_BUTTON = "Использовать рассылку погоды";
+    public static final String DEACTIVATE_WEATHER_BUTTON = "Отключить рассылку погоды";
+    public static final String SHARE_LOCATION_BUTTON = "Поделиться локацией";
+    public static final String ADD_CITY_WEATHER_BUTTON = "Добавить город";
+    public static final String REMOVE_CITY_WEATHER_BUTTON = "Удалить город";
     //endregion
 
     @Getter
@@ -94,9 +108,9 @@ public class TelegramBot extends TelegramLongPollingBot {
         sendMessage.setChatId(chatId);
         sendMessage.setText(text);
 
-        UserStatus status = telegramChatRepository.findById(chatId).get().getUser().getStatus();
+        TelegramUser user = telegramChatRepository.findById(chatId).get().getUser();
 
-        sendMessage.setReplyMarkup(getCustomReplyKeyboardMarkup(status));
+        sendMessage.setReplyMarkup(getCustomReplyKeyboardMarkup(user));
 
         try {
             execute(sendMessage);
@@ -105,7 +119,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private ReplyKeyboardMarkup getCustomReplyKeyboardMarkup(UserStatus status) {
+    private ReplyKeyboardMarkup getCustomReplyKeyboardMarkup(TelegramUser user) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setSelective(true);
         replyKeyboardMarkup.setResizeKeyboard(true);
@@ -114,7 +128,12 @@ public class TelegramBot extends TelegramLongPollingBot {
         List<KeyboardRow> keyboard = new ArrayList<>();
 
         KeyboardRow keyboardFirstRow = new KeyboardRow();
-        if (status != UserStatus.Registered) {
+        if (user.getRegistered()) {
+            keyboardFirstRow.add(new KeyboardButton(SETTINGS_BUTTON));
+            keyboardFirstRow.add(new KeyboardButton(HELP_BUTTON));
+
+            keyboard.add(keyboardFirstRow);
+        } else {
             keyboardFirstRow.add(new KeyboardButton(HELLO_BUTTON));
             keyboardFirstRow.add(new KeyboardButton(REGISTER_BUTTON));
 
@@ -123,11 +142,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             keyboard.add(keyboardFirstRow);
             keyboard.add(keyboardSecondRow);
-        } else {
-            keyboardFirstRow.add(new KeyboardButton(SETTINGS_BUTTON));
-            keyboardFirstRow.add(new KeyboardButton(HELP_BUTTON));
-
-            keyboard.add(keyboardFirstRow);
         }
 
         replyKeyboardMarkup.setKeyboard(keyboard);
