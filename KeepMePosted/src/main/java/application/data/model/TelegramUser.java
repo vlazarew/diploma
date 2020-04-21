@@ -29,6 +29,7 @@ public class TelegramUser {
     String phone;
     String email;
     UserStatus status;
+    String location;
 
     @ManyToOne
     Person person;

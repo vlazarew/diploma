@@ -8,6 +8,7 @@ import application.data.repository.TelegramChatRepository;
 import application.data.repository.UserRepository;
 import application.service.TelegramUpdateService;
 import application.utils.handler.TelegramMessageHandler;
+import com.google.inject.internal.cglib.proxy.$UndeclaredThrowableException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -128,7 +129,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         List<KeyboardRow> keyboard = new ArrayList<>();
 
         KeyboardRow keyboardFirstRow = new KeyboardRow();
-        if (user.getRegistered()) {
+        if (user.getRegistered() != null && user.getRegistered()) {
             keyboardFirstRow.add(new KeyboardButton(SETTINGS_BUTTON));
             keyboardFirstRow.add(new KeyboardButton(HELP_BUTTON));
 

@@ -55,7 +55,7 @@ public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
 //                    checkUserEmail(chatId, user, telegramUpdate.getMessage().getText());
 //                }
                 default: {
-                    if (status==UserStatus.VerifyEmail){
+                    if (status == UserStatus.VerifyEmail) {
                         checkUserEmail(chatId, user, telegramUpdate.getMessage().getText());
                     }
                     break;

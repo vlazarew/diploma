@@ -23,7 +23,8 @@ public class HelpTelegramMessageHandler implements TelegramMessageHandler {
         }
 
         Long chatId = telegramUpdate.getMessage().getChat().getId();
-        String text = telegramUpdate.getMessage().getFrom().getRegistered() ? "Мы поможем тебе" :
+        String text = (telegramUpdate.getMessage().getFrom().getRegistered() != null &&
+                telegramUpdate.getMessage().getFrom().getRegistered()) ? "Мы поможем тебе" :
                 "Мы помогаем только авторизированным пользователям";
         telegramBot.sendTextMessage(chatId, text);
     }

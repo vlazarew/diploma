@@ -34,41 +34,51 @@ public class SettingsTelegramHandler implements TelegramMessageHandler {
         TelegramUser user = telegramUpdate.getMessage().getFrom();
         UserStatus status = user.getStatus();
 
-        if (isText){
+        if (isText) {
             String userAnswer = telegramUpdate.getMessage().getText();
 
-            switch (userAnswer){
-                case TelegramBot.SETTINGS_BUTTON:{
-                    sendSettingsKeyboard(chatId, user);
+            switch (userAnswer) {
+                case TelegramBot.SETTINGS_BUTTON: {
+                    sendSettingsKeyboard(chatId, user, "Настройки бота");
                     break;
                 }
-                default:{
+                case TelegramBot.NOTIFICATION_SETTINGS_BUTTON: {
+                    sendSettingsKeyboard(chatId, user, "Настройка графика оповещений в разработке");
+                    break;
+                }
+                case TelegramBot.WEATHER_SETTINGS_BUTTON: {
+                    sendWeatherSettingKeyboard(chatId, user, "Настройки рассылки погоды");
+                    break;
+                }
+                default: {
                     break;
                 }
             }
+        } else if (isLocation) {
+            int s = 1;
         }
 
     }
 
-    private void sendSettingsKeyboard(Long chatId, TelegramUser user) {
+    private void sendSettingsKeyboard(Long chatId, TelegramUser user, String text) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.enableMarkdown(true);
         sendMessage.setChatId(chatId);
-        sendMessage.setText("Поделитесь номером телефона (опционально)");
+        sendMessage.setText(text);
 
         sendMessage.setReplyMarkup(createSettingsKeyboard());
 
         try {
             telegramBot.execute(sendMessage);
 
-            user.setStatus(UserStatus.VerifyPhone);
-            userRepository.save(user);
+//            user.setStatus(UserStatus.VerifyPhone);
+//            userRepository.save(user);
         } catch (TelegramApiException e) {
             log.error(e);
         }
     }
 
-    private ReplyKeyboardMarkup createSettingsKeyboard(){
+    private ReplyKeyboardMarkup createSettingsKeyboard() {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setSelective(true);
         replyKeyboardMarkup.setResizeKeyboard(true);
@@ -88,4 +98,49 @@ public class SettingsTelegramHandler implements TelegramMessageHandler {
 
         return replyKeyboardMarkup;
     }
+
+    private void sendWeatherSettingKeyboard(Long chatId, TelegramUser user, String text) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.enableMarkdown(true);
+        sendMessage.setChatId(chatId);
+        sendMessage.setText(text);
+
+        sendMessage.setReplyMarkup(createWeatherSettingsKeyboard());
+
+        try {
+            telegramBot.execute(sendMessage);
+
+//            user.setStatus(UserStatus.VerifyPhone);
+//            userRepository.save(user);
+        } catch (TelegramApiException e) {
+            log.error(e);
+        }
+    }
+
+    private ReplyKeyboardMarkup createWeatherSettingsKeyboard() {
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        replyKeyboardMarkup.setSelective(true);
+        replyKeyboardMarkup.setResizeKeyboard(true);
+        replyKeyboardMarkup.setOneTimeKeyboard(false);
+
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        KeyboardRow firstKeyboardRow = new KeyboardRow();
+        // if bla-bla
+        firstKeyboardRow.add(new KeyboardButton(TelegramBot.ACTIVATE_WEATHER_BUTTON));
+        // else
+        KeyboardRow secondKeyboardRow = new KeyboardRow();
+        secondKeyboardRow.add(new KeyboardButton(TelegramBot.DEACTIVATE_WEATHER_BUTTON));
+        secondKeyboardRow.add(new KeyboardButton(TelegramBot.SHARE_LOCATION_BUTTON).setRequestLocation(true));
+        secondKeyboardRow.add(new KeyboardButton(TelegramBot.ADD_CITY_WEATHER_BUTTON));
+        secondKeyboardRow.add(new KeyboardButton(TelegramBot.REMOVE_CITY_WEATHER_BUTTON));
+
+        keyboard.add(firstKeyboardRow);
+        keyboard.add(secondKeyboardRow);
+
+        replyKeyboardMarkup.setKeyboard(keyboard);
+
+        return replyKeyboardMarkup;
+    }
+
+
 }
