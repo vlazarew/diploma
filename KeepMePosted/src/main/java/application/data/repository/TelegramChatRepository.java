@@ -15,6 +15,6 @@ public interface TelegramChatRepository extends CrudRepository<TelegramChat, Lon
 
     //    @Query("select p from Person p where p.id = :personId ")
     //    Optional<TelegramChat> findByUserPersonId(@Param("personId") Integer id);
-    Optional<TelegramChat> findByUserPersonId(Integer id);
+//    Optional<TelegramChat> findByUserPersonId(Integer id);
 
 }

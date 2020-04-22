@@ -1,14 +1,11 @@
 package application.telegram;
 
-import application.data.model.TelegramChat;
 import application.data.model.TelegramUpdate;
 import application.data.model.TelegramUser;
-import application.data.model.UserStatus;
 import application.data.repository.TelegramChatRepository;
-import application.data.repository.UserRepository;
+import application.data.repository.TelegramUserRepository;
 import application.service.TelegramUpdateService;
 import application.utils.handler.TelegramMessageHandler;
-import com.google.inject.internal.cglib.proxy.$UndeclaredThrowableException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -21,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
@@ -76,14 +72,14 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Value("${bot.token}")
     String botToken;
 
-    final UserRepository userRepository;
+    final TelegramUserRepository userRepository;
     final TelegramChatRepository telegramChatRepository;
     final TelegramUpdateService telegramUpdateService;
     final List<TelegramMessageHandler> telegramMessageHandlers;
 
     @Autowired
     public TelegramBot(TelegramUpdateService telegramUpdateService,
-                       @Lazy List<TelegramMessageHandler> telegramMessageHandlers, UserRepository userRepository,
+                       @Lazy List<TelegramMessageHandler> telegramMessageHandlers, TelegramUserRepository userRepository,
                        TelegramChatRepository telegramChatRepository) {
         this.telegramUpdateService = telegramUpdateService;
         this.userRepository = userRepository;

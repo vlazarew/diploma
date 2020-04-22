@@ -3,7 +3,7 @@ package application.utils.handler;
 import application.data.model.TelegramUpdate;
 import application.data.model.TelegramUser;
 import application.data.model.UserStatus;
-import application.data.repository.UserRepository;
+import application.data.repository.TelegramUserRepository;
 import application.telegram.TelegramBot;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
     TelegramBot telegramBot;
-    UserRepository userRepository;
+    TelegramUserRepository userRepository;
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {

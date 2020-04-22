@@ -1,24 +1,19 @@
 package application.utils.handler;
 
 import application.data.model.TelegramUpdate;
-import application.data.model.TelegramUser;
-import application.data.repository.PersonRepository;
-import application.data.repository.UserRepository;
+import application.data.repository.TelegramUserRepository;
 import application.telegram.TelegramBot;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class AuthTelegramMessageHandler implements TelegramMessageHandler {
     TelegramBot telegramBot;
-    PersonRepository personRepository;
-    UserRepository userRepository;
+    TelegramUserRepository userRepository;
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {

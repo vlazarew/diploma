@@ -7,7 +7,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import java.util.Optional;
 
 @RepositoryRestResource
-public interface UserRepository extends CrudRepository<TelegramUser, Integer> {
+public interface TelegramUserRepository extends CrudRepository<TelegramUser, Integer> {
 
     Optional<TelegramUser> findById(Integer id);
 

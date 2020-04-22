@@ -3,13 +3,12 @@ package application.utils.handler;
 import application.data.model.TelegramUpdate;
 import application.data.model.TelegramUser;
 import application.data.model.UserStatus;
-import application.data.repository.UserRepository;
+import application.data.repository.TelegramUserRepository;
 import application.telegram.TelegramBot;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -26,7 +25,7 @@ import java.util.List;
 @Log4j2
 public class SettingsTelegramHandler implements TelegramMessageHandler {
     TelegramBot telegramBot;
-    UserRepository userRepository;
+    TelegramUserRepository userRepository;
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {

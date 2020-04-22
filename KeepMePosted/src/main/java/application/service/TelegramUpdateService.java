@@ -21,12 +21,14 @@ public class TelegramUpdateService {
     Transformer<User, TelegramUser> userToUserTransformer;
     Transformer<Chat, TelegramChat> chatTelegramChatTransformer;
     Transformer<Contact, TelegramContact> contactTelegramContactTransformer;
+    Transformer<Location, TelegramLocation> locationTelegramLocationTransformer;
 
     TelegramChatRepository telegramChatRepository;
     TelegramMessageRepository telegramMessageRepository;
     TelegramUpdateRepository telegramUpdateRepository;
-    UserRepository userRepository;
+    TelegramUserRepository userRepository;
     TelegramContactRepository telegramContactRepository;
+    TelegramLocationRepository telegramLocationRepository;
 
     // Турбо метод, записывающий все изменения, которые пришли по апдейту
     public TelegramUpdate save(Update update) {
@@ -65,6 +67,21 @@ public class TelegramUpdateService {
 
                         return telegramContactRepository.save(transformedContact);
                     });
+        }
+
+        TelegramLocation telegramLocation;
+        if (isLocation) {
+            float longitude = update.getMessage().getLocation().getLongitude();
+            float latitude = update.getMessage().getLocation().getLatitude();
+            // Сохранение локации
+            telegramLocation = telegramLocationRepository.findByLongitudeAndLatitude(longitude, latitude);
+
+            if (telegramLocation == null) {
+                TelegramLocation transformedLocation = locationTelegramLocationTransformer.transform(update.getMessage().getLocation());
+                transformedLocation.setUser(telegramUser);
+
+                telegramLocationRepository.save(transformedLocation);
+            }
         }
 
         // Запись истории сообщений

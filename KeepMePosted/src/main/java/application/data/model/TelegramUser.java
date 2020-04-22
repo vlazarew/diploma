@@ -29,10 +29,9 @@ public class TelegramUser {
     String phone;
     String email;
     UserStatus status;
-    String location;
 
-    @ManyToOne
-    Person person;
+    @OneToOne
+    TelegramLocation location;
 
     // id чата в самой телеге
 //    private Long chatId;

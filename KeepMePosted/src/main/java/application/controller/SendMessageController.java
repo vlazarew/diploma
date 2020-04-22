@@ -27,12 +27,12 @@ public class SendMessageController {
                 .ifPresent(telegramChat -> telegramBot.sendTextMessage(telegramChat.getId(), message));
     }
 
-    @PostMapping("/person/{personId}/send-message")
-    @ResponseStatus(HttpStatus.OK)
-    public void sendToPerson(@PathVariable Integer personId, @RequestBody String message) {
-        telegramChatRepository.findByUserPersonId(personId)
-                .ifPresent(telegramChat -> telegramBot.sendTextMessage(telegramChat.getId(), message));
-    }
+//    @PostMapping("/person/{personId}/send-message")
+//    @ResponseStatus(HttpStatus.OK)
+//    public void sendToPerson(@PathVariable Integer personId, @RequestBody String message) {
+//        telegramChatRepository.findByUserPersonId(personId)
+//                .ifPresent(telegramChat -> telegramBot.sendTextMessage(telegramChat.getId(), message));
+//    }
 
     @PostMapping("/user/send-messages")
     @ResponseStatus(HttpStatus.OK)
