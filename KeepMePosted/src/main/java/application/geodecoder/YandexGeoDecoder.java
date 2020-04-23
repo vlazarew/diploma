@@ -1,21 +1,21 @@
 package application.geodecoder;
 
-import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.entity.DecompressingEntity;
-import org.apache.http.client.entity.GZIPInputStreamFactory;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -24,46 +24,16 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
 
-//@Data
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
-//@RequiredArgsConstructor
 @PropertySource("classpath:yandex.properties")
+@Log4j2
 public class YandexGeoDecoder {
-
-    //region Параметры в get запросе
-
-    // Адрес или координаты
-//    String geocode;
-//
-//    // Апи-ключ из кабинета разработчика
-//   String apiKey;
-//
-//    // Порядок чтения координат. longlat или latlong
-//    String sco;
-//
-//    // house — дом;
-//    // street — улица;
-//    // metro — станция метро;
-//    // district — район города;
-//    // locality — населенный пункт (город/поселок/деревня/село/...).
-//    String kind;
-//
-//    // Формат ответа геокодера (xml или json)
-//    String format;
-//
-//    // Количество ответов
-//    Integer results;
-//    // ru_RU, en_US
-//    String lang;
-
-    //endregion
-
-
 
     @Getter
     @Value("yandex.geoDecoder.apiKey")
@@ -73,30 +43,14 @@ public class YandexGeoDecoder {
     final static CloseableHttpClient httpClient = HttpClients.createDefault();
 
     public static String getCityByCoordinates(String coordinates) {
-
-//        URL url = new URLBuilder("https://ru.stackoverflow.com/unanswered/tagged/")
-//                .withParam("page", "2")
-//                .withParam("tab", "новые")
-//                .build();
-
         StringBuilder requestUrl = new StringBuilder(getURL);
-
-//        HttpGet request = new HttpGet(getURL);
 
         List<NameValuePair> urlParameters = new ArrayList<>();
         urlParameters.add(new BasicNameValuePair("geocode", coordinates));
         urlParameters.add(new BasicNameValuePair("apikey", "6ae7a924-5b75-44c1-921a-ddfc3481ea28"));
         urlParameters.add(new BasicNameValuePair("format", "json"));
-//        urlParameters.add(new BasicNameValuePair("kind", coordinates));
-
-//        List<KeyValuePair> params = new ArrayList<>();
-////        params.setParameter("apikey", apiKey);
-//        params.add(new KeyValuePair("apikey", "6ae7a924-5b75-44c1-921a-ddfc3481ea28"));
-//        params.add("geocode", coordinates);
-//        params.add("format", "json");
-
-
-//        request.setParams(params);
+        urlParameters.add(new BasicNameValuePair("kind", "locality"));
+        urlParameters.add(new BasicNameValuePair("results", "1"));
 
         urlParameters.forEach(nameValuePair -> requestUrl
                 .append(nameValuePair.getName())
@@ -107,29 +61,39 @@ public class YandexGeoDecoder {
         HttpGet request = new HttpGet(requestUrl.toString());
 
         try (CloseableHttpResponse response = httpClient.execute(request)) {
-            String responceStatus = response.getStatusLine().toString();
+            if (response.getStatusLine().getStatusCode() == 200) {
+                String str = new String(IOUtils.toByteArray(response.getEntity().getContent()), StandardCharsets.UTF_8);
 
-//            InputStream temp = response.getEntity().getContent();
+                JsonParser parser = new JsonParser();
+                JsonElement element = parser.parse(str);
 
-//            ByteArrayInputStream temp = new ByteArrayInputStream();
-            String encoding = "UTF-8";
-            String str = new String(IOUtils.toByteArray(response.getEntity().getContent()), encoding);
-            System.out.println(str);
+                // Начинаем парсить
+                JsonObject rootObject = element.getAsJsonObject();
+                JsonObject responseObject = rootObject.getAsJsonObject("response");
+                JsonObject geoObjectCollectionObject = responseObject.getAsJsonObject("GeoObjectCollection");
+                JsonArray featureMemberObject = geoObjectCollectionObject.getAsJsonArray("featureMember");
 
-            Gson gson = new Gson();
+                if (featureMemberObject.size() == 0) {
+                    log.error("По указанным координатам не найдено адреса");
+                    return null;
+                } else if (featureMemberObject.size() > 1) {
+                    log.error("По указанным координатам вернули более 1 адреса");
+                }
 
-//            String res = gson.fromJson();
+                JsonObject firstAddressBlock = featureMemberObject.get(0).getAsJsonObject();
 
-//            YandexApiResponse res = gson.fromJson(str, YandexApiResponse.class)
-//            if (entity != null) {
-//                int s = 1;
-//            }
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
+                JsonObject geoObject = firstAddressBlock.getAsJsonObject("GeoObject");
+
+                return geoObject.get("name").getAsString();
+            } else {
+                log.error("Сервис не отвечает");
+                return null;
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
-        return "";
     }
 
 }

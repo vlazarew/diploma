@@ -1,7 +1,7 @@
 package application.service;
 
-import application.data.model.*;
-import application.data.repository.*;
+import application.data.model.telegram.*;
+import application.data.repository.telegram.*;
 import application.utils.transformer.Transformer;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -79,8 +79,10 @@ public class TelegramUpdateService {
             if (telegramLocation == null) {
                 TelegramLocation transformedLocation = locationTelegramLocationTransformer.transform(update.getMessage().getLocation());
                 transformedLocation.setUser(telegramUser);
-
                 telegramLocationRepository.save(transformedLocation);
+
+                telegramUser.setLocation(transformedLocation);
+                userRepository.save(telegramUser);
             }
         }
 

@@ -1,33 +1,34 @@
-package application.data.model;
+package application.data.model.telegram;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 import java.time.LocalDateTime;
 
 @Entity
 @Data
 @EqualsAndHashCode(of = {"id"})
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TelegramLocation {
+@Builder
+public class TelegramMessage {
 
     @Id
-    @GeneratedValue
-    Long id;
+    Integer id;
 
     LocalDateTime creationDate;
+    String text;
 
-    float longitude;
-    float latitude;
-    String city;
+    @ManyToOne
+    TelegramContact contact;
 
-    @OneToOne
-    TelegramUser user;
+    @ManyToOne
+    TelegramUser from;
+
+    @ManyToOne
+    TelegramChat chat;
 }

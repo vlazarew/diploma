@@ -1,6 +1,6 @@
-package application.data.repository;
+package application.data.repository.telegram;
 
-import application.data.model.TelegramUser;
+import application.data.model.telegram.TelegramUser;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 

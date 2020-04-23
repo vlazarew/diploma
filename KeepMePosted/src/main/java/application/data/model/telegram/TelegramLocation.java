@@ -1,9 +1,10 @@
-package application.data.model;
+package application.data.model.telegram;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import java.time.LocalDateTime;
@@ -15,16 +16,17 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TelegramContact {
+public class TelegramLocation {
 
     @Id
-    Integer id;
+    @GeneratedValue
+    Long id;
 
     LocalDateTime creationDate;
 
-    String phoneNumber;
-    String firstName;
-    String lastName;
+    float longitude;
+    float latitude;
+    String city;
 
     @OneToOne
     TelegramUser user;

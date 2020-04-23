@@ -1,6 +1,6 @@
 package application.utils.transformer;
 
-import application.data.model.TelegramMessage;
+import application.data.model.telegram.TelegramMessage;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 

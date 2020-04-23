@@ -1,6 +1,6 @@
 package application.controller;
 
-import application.data.repository.TelegramChatRepository;
+import application.data.repository.telegram.TelegramChatRepository;
 import application.telegram.TelegramBot;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +26,6 @@ public class SendMessageController {
         telegramChatRepository.findByUserId(userId)
                 .ifPresent(telegramChat -> telegramBot.sendTextMessage(telegramChat.getId(), message));
     }
-
-//    @PostMapping("/person/{personId}/send-message")
-//    @ResponseStatus(HttpStatus.OK)
-//    public void sendToPerson(@PathVariable Integer personId, @RequestBody String message) {
-//        telegramChatRepository.findByUserPersonId(personId)
-//                .ifPresent(telegramChat -> telegramBot.sendTextMessage(telegramChat.getId(), message));
-//    }
 
     @PostMapping("/user/send-messages")
     @ResponseStatus(HttpStatus.OK)

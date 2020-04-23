@@ -1,14 +1,11 @@
 package application.utils.transformer;
 
-import application.data.model.TelegramLocation;
+import application.data.model.telegram.TelegramLocation;
 import application.geodecoder.YandexGeoDecoder;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Location;
 
 import java.time.LocalDateTime;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 public class LocationToTelegramLocationTransformer implements Transformer<Location, TelegramLocation> {

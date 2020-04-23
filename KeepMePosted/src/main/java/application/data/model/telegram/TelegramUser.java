@@ -1,4 +1,4 @@
-package application.data.model;
+package application.data.model.telegram;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

@@ -1,6 +1,6 @@
-package application.data.repository;
+package application.data.repository.telegram;
 
-import application.data.model.TelegramLocation;
+import application.data.model.telegram.TelegramLocation;
 import org.springframework.data.repository.CrudRepository;
 
 public interface TelegramLocationRepository extends CrudRepository<TelegramLocation, Long> {

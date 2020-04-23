@@ -1,4 +1,4 @@
-package application.data.model;
+package application.data.model.telegram;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -12,17 +12,20 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(of = {"id"})
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class TelegramUpdate {
+public class TelegramContact {
 
     @Id
     Integer id;
 
     LocalDateTime creationDate;
 
-    @OneToOne
-    TelegramMessage message;
+    String phoneNumber;
+    String firstName;
+    String lastName;
 
+    @OneToOne
+    TelegramUser user;
 }

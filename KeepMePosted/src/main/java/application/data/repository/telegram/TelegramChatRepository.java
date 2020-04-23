@@ -1,9 +1,7 @@
-package application.data.repository;
+package application.data.repository.telegram;
 
-import application.data.model.TelegramChat;
-import org.springframework.data.jpa.repository.Query;
+import application.data.model.telegram.TelegramChat;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import java.util.Optional;

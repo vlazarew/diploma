@@ -1,7 +1,4 @@
-package application.data.model;
-
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
+package application.data.model.telegram;
 
 public enum UserStatus {
     NotRegistered, VerifyPhone, VerifyEmail, Registered;

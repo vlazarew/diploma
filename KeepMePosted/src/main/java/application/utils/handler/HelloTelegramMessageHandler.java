@@ -1,8 +1,7 @@
 package application.utils.handler;
 
-import application.data.model.TelegramUpdate;
-import application.data.model.TelegramUser;
-import application.data.model.UserStatus;
+import application.data.model.telegram.TelegramUpdate;
+import application.data.model.telegram.TelegramUser;
 import application.telegram.TelegramBot;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

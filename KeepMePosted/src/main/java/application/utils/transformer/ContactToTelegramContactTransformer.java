@@ -1,6 +1,6 @@
 package application.utils.transformer;
 
-import application.data.model.TelegramContact;
+import application.data.model.telegram.TelegramContact;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Contact;
 

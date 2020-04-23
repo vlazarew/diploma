@@ -1,9 +1,9 @@
 package application.telegram;
 
-import application.data.model.TelegramUpdate;
-import application.data.model.TelegramUser;
-import application.data.repository.TelegramChatRepository;
-import application.data.repository.TelegramUserRepository;
+import application.data.model.telegram.TelegramUpdate;
+import application.data.model.telegram.TelegramUser;
+import application.data.repository.telegram.TelegramChatRepository;
+import application.data.repository.telegram.TelegramUserRepository;
 import application.service.TelegramUpdateService;
 import application.utils.handler.TelegramMessageHandler;
 import lombok.AccessLevel;
@@ -54,6 +54,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     // Кнопки настроек
     public static final String SETTINGS_BUTTON = "Настройки";
     public static final String NOTIFICATION_SETTINGS_BUTTON = "Настройки оповещений";
+    public static final String SETTINGS_BACK_BUTTON = "Назад";
 
     // Интеграция с погодой
     public static final String WEATHER_SETTINGS_BUTTON = "Настройки рассылки погоды";
@@ -62,6 +63,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     public static final String SHARE_LOCATION_BUTTON = "Поделиться локацией";
     public static final String ADD_CITY_WEATHER_BUTTON = "Добавить город";
     public static final String REMOVE_CITY_WEATHER_BUTTON = "Удалить город";
+    public static final String LIST_FOLLOWING_CITIES_BUTTON = "Список отслеживаемых городов";
     //endregion
 
     @Getter

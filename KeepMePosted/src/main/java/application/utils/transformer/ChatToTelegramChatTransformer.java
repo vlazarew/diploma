@@ -1,6 +1,6 @@
 package application.utils.transformer;
 
-import application.data.model.TelegramChat;
+import application.data.model.telegram.TelegramChat;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 

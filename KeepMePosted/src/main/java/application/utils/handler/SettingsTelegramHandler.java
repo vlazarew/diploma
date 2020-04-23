@@ -1,15 +1,21 @@
 package application.utils.handler;
 
-import application.data.model.TelegramUpdate;
-import application.data.model.TelegramUser;
-import application.data.model.UserStatus;
-import application.data.repository.TelegramUserRepository;
+import application.data.model.service.ServiceSettings;
+import application.data.model.service.WeatherSettings;
+import application.data.model.service.WebService;
+import application.data.model.telegram.TelegramUpdate;
+import application.data.model.telegram.TelegramUser;
+import application.data.model.telegram.UserStatus;
+import application.data.repository.service.ServiceSettingsRepository;
+import application.data.repository.service.WeatherSettingsRepository;
+import application.data.repository.telegram.TelegramUserRepository;
 import application.telegram.TelegramBot;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
@@ -26,6 +32,8 @@ import java.util.List;
 public class SettingsTelegramHandler implements TelegramMessageHandler {
     TelegramBot telegramBot;
     TelegramUserRepository userRepository;
+    ServiceSettingsRepository serviceSettingsRepository;
+    WeatherSettingsRepository weatherSettingsRepository;
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
@@ -53,13 +61,11 @@ public class SettingsTelegramHandler implements TelegramMessageHandler {
                     break;
                 }
             }
-        } else if (isLocation) {
-            int s = 1;
         }
 
     }
 
-    private void sendSettingsKeyboard(Long chatId, TelegramUser user, String text) {
+    public void sendSettingsKeyboard(Long chatId, TelegramUser user, String text) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.enableMarkdown(true);
         sendMessage.setChatId(chatId);
@@ -69,9 +75,6 @@ public class SettingsTelegramHandler implements TelegramMessageHandler {
 
         try {
             telegramBot.execute(sendMessage);
-
-//            user.setStatus(UserStatus.VerifyPhone);
-//            userRepository.save(user);
         } catch (TelegramApiException e) {
             log.error(e);
         }
@@ -98,25 +101,22 @@ public class SettingsTelegramHandler implements TelegramMessageHandler {
         return replyKeyboardMarkup;
     }
 
-    private void sendWeatherSettingKeyboard(Long chatId, TelegramUser user, String text) {
+    public void sendWeatherSettingKeyboard(Long chatId, TelegramUser user, String text) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.enableMarkdown(true);
         sendMessage.setChatId(chatId);
         sendMessage.setText(text);
 
-        sendMessage.setReplyMarkup(createWeatherSettingsKeyboard());
+        sendMessage.setReplyMarkup(createWeatherSettingsKeyboard(user));
 
         try {
             telegramBot.execute(sendMessage);
-
-//            user.setStatus(UserStatus.VerifyPhone);
-//            userRepository.save(user);
         } catch (TelegramApiException e) {
             log.error(e);
         }
     }
 
-    private ReplyKeyboardMarkup createWeatherSettingsKeyboard() {
+    private ReplyKeyboardMarkup createWeatherSettingsKeyboard(TelegramUser user) {
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setSelective(true);
         replyKeyboardMarkup.setResizeKeyboard(true);
@@ -124,17 +124,26 @@ public class SettingsTelegramHandler implements TelegramMessageHandler {
 
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow firstKeyboardRow = new KeyboardRow();
-        // if bla-bla
-        firstKeyboardRow.add(new KeyboardButton(TelegramBot.ACTIVATE_WEATHER_BUTTON));
-        // else
+
+        ServiceSettings serviceSettings = serviceSettingsRepository.findByUserAndService(user, WebService.YandexWeather);
+        if (serviceSettings != null && serviceSettings.getActive()) {
+            firstKeyboardRow.add(new KeyboardButton(TelegramBot.DEACTIVATE_WEATHER_BUTTON));
+        } else {
+            firstKeyboardRow.add(new KeyboardButton(TelegramBot.ACTIVATE_WEATHER_BUTTON));
+        }
+        firstKeyboardRow.add(new KeyboardButton(TelegramBot.SHARE_LOCATION_BUTTON).setRequestLocation(true));
+
         KeyboardRow secondKeyboardRow = new KeyboardRow();
-        secondKeyboardRow.add(new KeyboardButton(TelegramBot.DEACTIVATE_WEATHER_BUTTON));
-        secondKeyboardRow.add(new KeyboardButton(TelegramBot.SHARE_LOCATION_BUTTON).setRequestLocation(true));
         secondKeyboardRow.add(new KeyboardButton(TelegramBot.ADD_CITY_WEATHER_BUTTON));
         secondKeyboardRow.add(new KeyboardButton(TelegramBot.REMOVE_CITY_WEATHER_BUTTON));
+        secondKeyboardRow.add(new KeyboardButton(TelegramBot.LIST_FOLLOWING_CITIES_BUTTON));
+
+        KeyboardRow thirdKeyboardRow = new KeyboardRow();
+        thirdKeyboardRow.add(new KeyboardButton(TelegramBot.SETTINGS_BACK_BUTTON));
 
         keyboard.add(firstKeyboardRow);
         keyboard.add(secondKeyboardRow);
+        keyboard.add(thirdKeyboardRow);
 
         replyKeyboardMarkup.setKeyboard(keyboard);
 

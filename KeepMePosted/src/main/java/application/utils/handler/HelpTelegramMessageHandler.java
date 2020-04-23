@@ -1,13 +1,11 @@
 package application.utils.handler;
 
-import application.data.model.TelegramUpdate;
+import application.data.model.telegram.TelegramUpdate;
 import application.telegram.TelegramBot;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
