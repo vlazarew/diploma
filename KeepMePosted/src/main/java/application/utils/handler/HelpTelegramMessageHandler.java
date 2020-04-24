@@ -1,11 +1,16 @@
 package application.utils.handler;
 
 import application.data.model.telegram.TelegramUpdate;
+import application.data.model.telegram.TelegramUser;
 import application.telegram.TelegramBot;
+import application.telegram.TelegramKeyboards;
+import application.telegram.TelegramSendMessage;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -21,9 +26,13 @@ public class HelpTelegramMessageHandler implements TelegramMessageHandler {
         }
 
         Long chatId = telegramUpdate.getMessage().getChat().getId();
+        TelegramUser user = telegramUpdate.getMessage().getFrom();
         String text = (telegramUpdate.getMessage().getFrom().getRegistered() != null &&
                 telegramUpdate.getMessage().getFrom().getRegistered()) ? "Мы поможем тебе" :
                 "Мы помогаем только авторизированным пользователям";
-        telegramBot.sendTextMessage(chatId, text);
+
+        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(user);
+        TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, telegramBot, null,
+                null, null);
     }
 }

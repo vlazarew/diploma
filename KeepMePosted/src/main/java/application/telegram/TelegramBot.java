@@ -33,10 +33,6 @@ import java.util.List;
 @PropertySource("classpath:telegram.properties")
 public class TelegramBot extends TelegramLongPollingBot {
 
-//    private static final Logger LOGGER = LogManager.getLogger(TelegramBot.class);
-//    private static final String BROADCAST = "broadcast ";
-//    private static final String LIST_USERS = "users";
-
     //region Кнопки в приложении
     public static final String START_COMMAND = "/start";
 
@@ -64,6 +60,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     public static final String ADD_CITY_WEATHER_BUTTON = "Добавить город";
     public static final String REMOVE_CITY_WEATHER_BUTTON = "Удалить город";
     public static final String LIST_FOLLOWING_CITIES_BUTTON = "Список отслеживаемых городов";
+    public static final String CANCEL_BUTTON = "Отмена";
     //endregion
 
     @Getter
@@ -101,51 +98,51 @@ public class TelegramBot extends TelegramLongPollingBot {
                 isContact, isLocation));
     }
 
-    public void sendTextMessage(Long chatId, String text) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.enableMarkdown(true);
-        sendMessage.setChatId(chatId);
-        sendMessage.setText(text);
+//    public void sendTextMessage(Long chatId, String text) {
+//        SendMessage sendMessage = new SendMessage();
+//        sendMessage.enableMarkdown(true);
+//        sendMessage.setChatId(chatId);
+//        sendMessage.setText(text);
+//
+//        TelegramUser user = telegramChatRepository.findById(chatId).get().getUser();
+//
+//        sendMessage.setReplyMarkup(getCustomReplyKeyboardMarkup(user));
+//
+//        try {
+//            execute(sendMessage);
+//        } catch (TelegramApiException e) {
+//            log.error(e);
+//        }
+//    }
 
-        TelegramUser user = telegramChatRepository.findById(chatId).get().getUser();
-
-        sendMessage.setReplyMarkup(getCustomReplyKeyboardMarkup(user));
-
-        try {
-            execute(sendMessage);
-        } catch (TelegramApiException e) {
-            log.error(e);
-        }
-    }
-
-    private ReplyKeyboardMarkup getCustomReplyKeyboardMarkup(TelegramUser user) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-        replyKeyboardMarkup.setSelective(true);
-        replyKeyboardMarkup.setResizeKeyboard(true);
-        replyKeyboardMarkup.setOneTimeKeyboard(false);
-
-        List<KeyboardRow> keyboard = new ArrayList<>();
-
-        KeyboardRow keyboardFirstRow = new KeyboardRow();
-        if (user.getRegistered() != null && user.getRegistered()) {
-            keyboardFirstRow.add(new KeyboardButton(SETTINGS_BUTTON));
-            keyboardFirstRow.add(new KeyboardButton(HELP_BUTTON));
-
-            keyboard.add(keyboardFirstRow);
-        } else {
-            keyboardFirstRow.add(new KeyboardButton(HELLO_BUTTON));
-            keyboardFirstRow.add(new KeyboardButton(REGISTER_BUTTON));
-
-            KeyboardRow keyboardSecondRow = new KeyboardRow();
-            keyboardSecondRow.add(new KeyboardButton(HELP_BUTTON));
-
-            keyboard.add(keyboardFirstRow);
-            keyboard.add(keyboardSecondRow);
-        }
-
-        replyKeyboardMarkup.setKeyboard(keyboard);
-        return replyKeyboardMarkup;
-    }
+//    private ReplyKeyboardMarkup getCustomReplyKeyboardMarkup(TelegramUser user) {
+//        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+//        replyKeyboardMarkup.setSelective(true);
+//        replyKeyboardMarkup.setResizeKeyboard(true);
+//        replyKeyboardMarkup.setOneTimeKeyboard(false);
+//
+//        List<KeyboardRow> keyboard = new ArrayList<>();
+//
+//        KeyboardRow keyboardFirstRow = new KeyboardRow();
+//        if (user.getRegistered() != null && user.getRegistered()) {
+//            keyboardFirstRow.add(new KeyboardButton(SETTINGS_BUTTON));
+//            keyboardFirstRow.add(new KeyboardButton(HELP_BUTTON));
+//
+//            keyboard.add(keyboardFirstRow);
+//        } else {
+//            keyboardFirstRow.add(new KeyboardButton(HELLO_BUTTON));
+//            keyboardFirstRow.add(new KeyboardButton(REGISTER_BUTTON));
+//
+//            KeyboardRow keyboardSecondRow = new KeyboardRow();
+//            keyboardSecondRow.add(new KeyboardButton(HELP_BUTTON));
+//
+//            keyboard.add(keyboardFirstRow);
+//            keyboard.add(keyboardSecondRow);
+//        }
+//
+//        replyKeyboardMarkup.setKeyboard(keyboard);
+//        return replyKeyboardMarkup;
+//    }
 
     @Override
     public String getBotUsername() {

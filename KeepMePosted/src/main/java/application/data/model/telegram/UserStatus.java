@@ -1,7 +1,7 @@
 package application.data.model.telegram;
 
 public enum UserStatus {
-    NotRegistered, VerifyPhone, VerifyEmail, Registered;
+    NotRegistered, VerifyPhone, VerifyEmail, Registered, WeatherSettings, Settings, MainPage;
 
     private static UserStatus[] userStatuses;
 

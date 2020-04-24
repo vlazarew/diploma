@@ -3,10 +3,13 @@ package application.utils.handler;
 import application.data.model.telegram.TelegramUpdate;
 import application.data.model.telegram.TelegramUser;
 import application.telegram.TelegramBot;
+import application.telegram.TelegramKeyboards;
+import application.telegram.TelegramSendMessage;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -31,6 +34,9 @@ public class HelloTelegramMessageHandler implements TelegramMessageHandler {
         String text = Stream.of("Привет, ", telegramUser.getLastName(), telegramUser.getFirstName())
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining(" "));
-        telegramBot.sendTextMessage(chatId, text);
+
+        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(telegramUser);
+        TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, telegramBot, null,
+                null, null);
     }
 }
