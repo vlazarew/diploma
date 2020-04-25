@@ -33,7 +33,8 @@ public class TelegramKeyboards {
         KeyboardRow keyboardFirstRow = new KeyboardRow();
         if (user.getRegistered() != null && user.getRegistered()) {
             keyboardFirstRow.add(new KeyboardButton(TelegramBot.SETTINGS_BUTTON));
-            keyboardFirstRow.add(new KeyboardButton(TelegramBot.HELP_BUTTON));
+//            keyboardFirstRow.add(new KeyboardButton(TelegramBot.HELP_BUTTON));
+            keyboardFirstRow.add(new KeyboardButton(TelegramBot.WEATHER_IN_CURRENT_LOCATION_BUTTON).setRequestLocation(true));
 
             keyboard.add(keyboardFirstRow);
         } else {

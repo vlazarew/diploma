@@ -32,24 +32,4 @@ public class TelegramUser {
 
     @OneToOne
     TelegramLocation location;
-
-    // id чата в самой телеге
-//    private Long chatId;
-    // ид состояния пользователя
-//    private Integer stateId;
-
-//    private Boolean isAdmin = false;
-//    private Boolean notified = false;
-
-//    @Autowired
-//    public User(Long chatId, Integer stateId) {
-//        this.chatId = chatId;
-//        this.stateId = stateId;
-//    }
-//
-//    public User(Long chatId, Integer stateId, Boolean isAdmin) {
-//        this.chatId = chatId;
-//        this.stateId = stateId;
-//        this.isAdmin = isAdmin;
-//    }
 }

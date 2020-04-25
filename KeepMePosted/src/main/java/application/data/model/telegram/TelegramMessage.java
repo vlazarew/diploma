@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import java.time.LocalDateTime;
 
 @Entity
@@ -23,12 +24,12 @@ public class TelegramMessage {
     LocalDateTime creationDate;
     String text;
 
-    @ManyToOne
+    @OneToOne
     TelegramContact contact;
 
-    @ManyToOne
+    @OneToOne
     TelegramUser from;
 
-    @ManyToOne
+    @OneToOne
     TelegramChat chat;
 }

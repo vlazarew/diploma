@@ -20,7 +20,7 @@ public class ServiceSettings {
     @GeneratedValue
     Long id;
 
-    Boolean active;
+    Boolean active = false;
     Integer countOfNotification;
     WebService service;
 

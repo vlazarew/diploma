@@ -23,6 +23,8 @@ public class WeatherSettings {
     Long id;
 
     String city;
+    float longitude;
+    float latitude;
 
     @ManyToOne
     TelegramUser user;

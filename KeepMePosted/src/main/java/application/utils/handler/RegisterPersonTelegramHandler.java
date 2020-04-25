@@ -80,7 +80,7 @@ public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
 
     private void checkUserEmail(Long chatId, TelegramUser user, String text) {
         if (EMailUtils.isValidEmailAddress(text)) {
-            user.setStatus(UserStatus.Registered);
+            user.setStatus(UserStatus.MainPage);
             user.setRegistered(true);
             user.setEmail(text);
             userRepository.save(user);

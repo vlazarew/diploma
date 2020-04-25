@@ -3,10 +3,7 @@ package application.data.model.telegram;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -24,8 +21,8 @@ public class TelegramLocation {
 
     LocalDateTime creationDate;
 
-    float longitude;
-    float latitude;
+    Float longitude;
+    Float latitude;
     String city;
 
     @OneToOne

@@ -3,9 +3,7 @@ package application.data.model.telegram;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,6 +24,6 @@ public class TelegramChat {
     Boolean channelChat;
     Boolean superGroupChat;
 
-    @ManyToOne
+    @OneToOne
     TelegramUser user;
 }

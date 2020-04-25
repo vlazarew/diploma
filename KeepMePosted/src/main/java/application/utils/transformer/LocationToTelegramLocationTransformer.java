@@ -1,7 +1,7 @@
 package application.utils.transformer;
 
 import application.data.model.telegram.TelegramLocation;
-import application.geodecoder.YandexGeoDecoder;
+import application.service.geocoder.YandexGeoCoder;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Location;
 
@@ -17,7 +17,7 @@ public class LocationToTelegramLocationTransformer implements Transformer<Locati
                 .creationDate(LocalDateTime.now())
                 .latitude(chat.getLatitude())
                 .longitude(chat.getLongitude())
-                .city(YandexGeoDecoder.getCityByCoordinates(chat.getLongitude().toString()
+                .city(YandexGeoCoder.getCityByCoordinates(chat.getLongitude().toString()
                         + "," + chat.getLatitude().toString()))
                 .build();
     }
