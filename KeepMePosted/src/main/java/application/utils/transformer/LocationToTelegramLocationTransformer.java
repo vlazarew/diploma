@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 
 @Component
 public class LocationToTelegramLocationTransformer implements Transformer<Location, TelegramLocation> {
-//    YandexGeoDecoder yandexGeoDecoder;
 
     @Override
     public TelegramLocation transform(Location chat) {

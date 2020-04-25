@@ -1,18 +1,19 @@
 package application.utils.handler;
 
-import application.data.model.YandexWeather.YandexWeatherFact;
+import application.data.model.YandexWeather.*;
 import application.data.model.service.ServiceSettings;
 import application.data.model.service.WeatherSettings;
 import application.data.model.service.WebService;
+import application.data.model.telegram.TelegramLocation;
 import application.data.model.telegram.TelegramUpdate;
 import application.data.model.telegram.TelegramUser;
 import application.data.model.telegram.UserStatus;
 import application.data.repository.service.ServiceSettingsRepository;
 import application.data.repository.service.WeatherSettingsRepository;
 import application.data.repository.telegram.TelegramChatRepository;
+import application.data.repository.telegram.TelegramLocationRepository;
 import application.data.repository.telegram.TelegramUserRepository;
 import application.service.geocoder.YandexGeoCoder;
-import application.data.model.YandexWeather.YandexWeather;
 import application.service.weather.YandexWeatherService;
 import application.telegram.TelegramBot;
 import application.telegram.TelegramKeyboards;
@@ -27,6 +28,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -41,6 +43,7 @@ public class WeatherSettingHandler implements TelegramMessageHandler {
     SettingsTelegramHandler settingsTelegramHandler;
     TelegramChatRepository telegramChatRepository;
     YandexWeatherService yandexWeatherService;
+    TelegramLocationRepository telegramLocationRepository;
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
@@ -66,22 +69,7 @@ public class WeatherSettingHandler implements TelegramMessageHandler {
                 }
                 case MainPage: {
 
-                    float longitude = user.getLocation().getLongitude();
-                    float latitude = user.getLocation().getLatitude();
-
-                    YandexWeather weather = yandexWeatherService.getWeatherByCoordinates(Float.toString(longitude), Float.toString(latitude));
-
-                    String messageToUser;
-
-                    if (weather == null) {
-                        messageToUser = "По вашему месторасположению не найдено информации о погоде!";
-                    }
-
-                    StringBuilder weatherMessage = new StringBuilder();
-                    weatherMessage.append("Текущая погода:").append("\r\n\r\n")
-                            .append("По ощущениям: ").append(weather.getFact().getFeelsLike()).append("\r\n")
-                            .append("Влажность: ").append(weather.getFact().getHumidity());
-                    messageToUser = weatherMessage.toString();
+                    String messageToUser = saveWeatherInfoAndDoMessageToUser(user, true);
 
                     ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(user);
                     TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, messageToUser, replyKeyboardMarkup,
@@ -254,4 +242,38 @@ public class WeatherSettingHandler implements TelegramMessageHandler {
         return stringBuilder.toString();
     }
 
+    @Transactional
+    String saveWeatherInfoAndDoMessageToUser(TelegramUser user, boolean isUserLocation) {
+        float longitude = user.getLocation().getLongitude();
+        float latitude = user.getLocation().getLatitude();
+
+        YandexWeather weather = yandexWeatherService.getWeatherByCoordinates(Float.toString(longitude), Float.toString(latitude));
+        String messageToUser;
+
+        if (weather == null) {
+            messageToUser = "По вашему месторасположению не найдено информации о погоде!";
+        } else {
+            if (isUserLocation) {
+                YandexWeatherTZInfo tzInfo = weather.getInfo().getTzInfo();
+                user.setTzInfo(tzInfo);
+                TelegramLocation location = user.getLocation();
+                location.setTzInfo(tzInfo);
+
+                userRepository.save(user);
+                telegramLocationRepository.save(location);
+            }
+
+            YandexWeatherFact fact = weather.getFact();
+            Set<YandexWeatherForecast> forecast = weather.getForecasts();
+
+            messageToUser = "Сегодня:" + "\r\n\r\n" +
+                    "Сейчас " + YandexWeatherService.englishWeatherConditionToRussian(fact.getWeatherCondition()).toLowerCase()
+                    + "\r\n" +
+                    "Температура воздуха: " + fact.getTemp() + " ℃, по ощущениям: " + fact.getFeelsLike() + " ℃" + "\r\n" +
+                    "Влажность: " + fact.getHumidity() + "%";
+        }
+
+
+        return messageToUser;
+    }
 }

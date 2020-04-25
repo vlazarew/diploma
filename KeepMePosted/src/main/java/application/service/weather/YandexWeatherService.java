@@ -235,4 +235,167 @@ public class YandexWeatherService {
         }
     }
 
+    public static String englishWeatherConditionToRussian(String condition) {
+        switch (condition) {
+            case "clear": {
+                return "Ясно";
+            }
+            case "partly-cloudy": {
+                return "Малооблачно";
+            }
+            case "cloudy": {
+                return "Облачно с прояснениями";
+            }
+            case "overcast": {
+                return "Пасмурно";
+            }
+            case "partly-cloudy-and-light-rain":
+            case "cloudy-and-light-rain":
+            case "overcast-and-light-rain": {
+                return "Небольшой дождь";
+            }
+            case "partly-cloudy-and-rain":
+            case "cloudy-and-rain": {
+                return "Дождь";
+            }
+            case "overcast-and-rain": {
+                return "Сильный дождь";
+            }
+            case "overcast-thunderstorms-with-rain": {
+                return "Сильный дождь, гроза";
+            }
+            case "overcast-and-wet-snow": {
+                return "Дождь со снегом";
+            }
+            case "partly-cloudy-and-light-snow":
+            case "cloudy-and-light-snow":
+            case "overcast-and-light-snow": {
+                return "Небольшой снег";
+            }
+            case "partly-cloudy-and-snow":
+            case "cloudy-and-snow": {
+                return "Снег";
+            }
+            case "overcast-and-snow": {
+                return "Снегопад";
+            }
+        }
+        return null;
+    }
+
+    public static String englishWindDirectionToRussian(String windDirection) {
+        switch (windDirection) {
+            case "nw": {
+                return "северо-западное";
+            }
+            case "n": {
+                return "северое";
+            }
+            case "ne": {
+                return "северо-восточное";
+            }
+            case "e": {
+                return "восточное";
+            }
+            case "se": {
+                return "юго-восточное";
+            }
+            case "s": {
+                return "южное";
+            }
+            case "sw": {
+                return "юго-западное";
+            }
+            case "w": {
+                return "западное";
+            }
+            case "c": {
+                return "штиль";
+            }
+        }
+        return null;
+    }
+
+    public static String floatTypePrecToRussian(float precType) {
+        if (precType == 0) {
+            return "Без осадков";
+        } else if (precType == 1) {
+            return "Дождь";
+        } else if (precType == 2) {
+            return "Дождь со снегом";
+        } else if (precType == 3) {
+            return "Снег";
+        }
+        return null;
+    }
+
+    public static String floatStrengthPrecToRussian(float precStrength) {
+        if (precStrength == 0) {
+            return "Без осадков";
+        } else if (precStrength == 0.25) {
+            return "Слабый дождь";
+        } else if (precStrength == 0.5) {
+            return "Дождь";
+        } else if (precStrength == 0.75) {
+            return "Сильный дождь";
+        } else if (precStrength == 1) {
+            return "Сильный ливень";
+        }
+        return null;
+    }
+
+    public static String floatCloudnessToRussian(float cloudness) {
+        if (cloudness == 0) {
+            return "Ясно";
+        } else if (cloudness == 0.25) {
+            return "Малооблачно";
+        } else if (cloudness == 0.5 || cloudness == 0.75) {
+            return "Облачно с прояснениями";
+        } else if (cloudness == 1) {
+            return "Пасмурно";
+        }
+        return null;
+    }
+
+    public static String floatMoonCodeToRussian(float moonCode) {
+        if (moonCode == 0) {
+            return "Полнолуние";
+        } else if ((moonCode >= 1 && moonCode <= 3) || (moonCode >= 5 && moonCode <= 7)) {
+            return "Убывающая Луна";
+        } else if (moonCode == 4) {
+            return "Последняя четверть";
+        } else if (moonCode == 8) {
+            return "Новолуние";
+        } else if ((moonCode >= 9 && moonCode <= 11) || (moonCode >= 13 && moonCode <= 15)) {
+            return "Растущая Луна";
+        } else if (moonCode == 12) {
+            return "Первая четверть";
+        }
+        return null;
+    }
+
+    public static String englishMoonStatusToRussain(String moonText) {
+        switch (moonText) {
+            case "full-moon": {
+                return "Полнолуние";
+            }
+            case "decreasing-moon": {
+                return "Убывающая Луна";
+            }
+            case "last-quarter": {
+                return "Последняя четверть";
+            }
+            case "new-moon": {
+                return "Новолуние";
+            }
+            case "growing-moon": {
+                return "Растущая Луна";
+            }
+            case "first-quarter": {
+                return "Первая четверть";
+            }
+        }
+
+        return null;
+    }
 }

@@ -1,5 +1,6 @@
 package application.data.model.telegram;
 
+import application.data.model.YandexWeather.YandexWeatherTZInfo;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -29,6 +30,9 @@ public class TelegramUser {
     String phone;
     String email;
     UserStatus status;
+
+    @OneToOne
+    YandexWeatherTZInfo tzInfo;
 
     @OneToOne
     TelegramLocation location;
