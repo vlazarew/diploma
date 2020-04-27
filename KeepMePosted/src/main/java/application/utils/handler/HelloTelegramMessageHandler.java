@@ -23,18 +23,26 @@ public class HelloTelegramMessageHandler implements TelegramMessageHandler {
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
-        // Если не текст или не кнопка "Привет" или старт приложения
-        if (!isText || (!telegramUpdate.getMessage().getText().startsWith(TelegramBot.START_COMMAND)
-                && !telegramUpdate.getMessage().getText().equals(TelegramBot.HELLO_BUTTON))) {
+        if (!isText) {
+            return;
+        }
+
+        String messageText = telegramUpdate.getMessage().getText();
+        if (!messageText.startsWith(TelegramBot.START_COMMAND)) {
+            return;
+        }
+
+        if (!messageText.equals(TelegramBot.HELLO_BUTTON)) {
             return;
         }
 
         Long chatId = telegramUpdate.getMessage().getChat().getId();
         TelegramUser telegramUser = telegramUpdate.getMessage().getFrom();
-        String text = Stream.of("Привет, ", telegramUser.getLastName(), telegramUser.getFirstName())
+        String text = Stream.of("Привет, ", telegramUser.getLastName(), telegramUser.getFirstName()) // +
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining(" "));
 
+        // method
         ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(telegramUser);
         TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, telegramBot, null,
                 null, null);

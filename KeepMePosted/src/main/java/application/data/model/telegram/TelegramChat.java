@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-@EqualsAndHashCode(of = {"id"})
+@EqualsAndHashCode(of = {"id"}) // ((
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor

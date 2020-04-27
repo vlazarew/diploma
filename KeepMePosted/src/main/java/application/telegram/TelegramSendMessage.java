@@ -1,6 +1,7 @@
 package application.telegram;
 
 
+import application.data.model.telegram.TelegramChat;
 import application.data.model.telegram.TelegramUser;
 import application.data.model.telegram.UserStatus;
 import application.data.repository.telegram.TelegramChatRepository;

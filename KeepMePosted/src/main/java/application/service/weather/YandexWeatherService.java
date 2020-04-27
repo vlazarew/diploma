@@ -46,13 +46,15 @@ public class YandexWeatherService {
     YandexWeatherPartsRepository yandexWeatherPartsRepository;
     YandexWeatherTZInfoRepository yandexWeatherTZInfoRepository;
 
+    String getURL = "https://api.weather.yandex.ru/v1/forecast?";
+
     @Transactional
+    // Use Jackson
     public YandexWeather getWeatherByCoordinates(String longitude, String latitude) {
 //        public static void getWeatherByCoordinates(String longitude, String latitude, YandexWeatherRepository yandexWeatherRepository,
 //                YandexWeatherInfoRepository yandexWeatherInfoRepository, YandexWeatherFactRepository yandexWeatherFactRepository,
 //                YandexWeatherForecastRepository yandexWeatherForecastRepository) {
 
-        String getURL = "https://api.weather.yandex.ru/v1/forecast?";
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
         StringBuilder requestUrl = new StringBuilder(getURL);
@@ -236,7 +238,7 @@ public class YandexWeatherService {
     }
 
     public static String englishWeatherConditionToRussian(String condition) {
-        switch (condition) {
+        switch (condition) { // Use map here
             case "clear": {
                 return "Ясно";
             }

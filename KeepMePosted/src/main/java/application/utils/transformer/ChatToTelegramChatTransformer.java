@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import java.time.LocalDateTime;
 
 @Component
+// Mapper
 public class ChatToTelegramChatTransformer implements Transformer<Chat, TelegramChat> {
 
     @Override

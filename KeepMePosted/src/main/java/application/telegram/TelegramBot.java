@@ -17,6 +17,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
@@ -90,9 +91,10 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
 
-        boolean isContact = update.getMessage().hasContact();
-        boolean isText = update.getMessage().hasText();
-        boolean isLocation = update.getMessage().hasLocation();
+        Message message = update.getMessage();
+        boolean isContact = message.hasContact(); //has prefix
+        boolean isText = message.hasText();
+        boolean isLocation = message.hasLocation();
 
         TelegramUpdate telegramUpdate = telegramUpdateService.save(update);
         telegramMessageHandlers.forEach(telegramMessageHandler -> telegramMessageHandler.handle(telegramUpdate, isText,

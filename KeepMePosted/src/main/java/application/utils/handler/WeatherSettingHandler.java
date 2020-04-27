@@ -14,7 +14,8 @@ import application.data.repository.telegram.TelegramChatRepository;
 import application.data.repository.telegram.TelegramLocationRepository;
 import application.data.repository.telegram.TelegramUserRepository;
 import application.service.geocoder.YandexGeoCoder;
-import application.service.weather.YandexWeatherService;
+import application.service.weather.
+        YandexWeatherService;
 import application.telegram.TelegramBot;
 import application.telegram.TelegramKeyboards;
 import application.telegram.TelegramSendMessage;

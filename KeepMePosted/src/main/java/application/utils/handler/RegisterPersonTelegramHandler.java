@@ -12,15 +12,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.validator.EmailValidator;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 @Log4j2
@@ -39,37 +33,39 @@ public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
 
         if (isContact) {
             askUsersEmail(chatId, "Введите свой e-mail адрес (обязательно)");
-        } else if (isText) {
-            String userAnswer = telegramUpdate.getMessage().getText();
-
-            switch (userAnswer) {
-                case TelegramBot.REGISTER_BUTTON: {
-                    ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getAskUsersPhoneReplyKeyboardMarkup();
-                    TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, "Поделитесь номером телефона (опционально)",
-                            replyKeyboardMarkup, telegramBot, UserStatus.VerifyPhone, userRepository, telegramChatRepository);
-                    break;
-                }
-                case TelegramBot.NEXT_BUTTON: {
-                    askUsersEmail(chatId, "Введите свой e-mail адрес (обязательно)");
-                    break;
-                }
-                case TelegramBot.CANCEL_REGISTRATION_BUTTON: {
-                    ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(user);
-                    TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, "Регистрация отменена",
-                            replyKeyboardMarkup, telegramBot, UserStatus.NotRegistered, userRepository, telegramChatRepository);
-
-                    break;
-                }
-                default: {
-                    if (status == UserStatus.VerifyEmail) {
-                        checkUserEmail(chatId, user, telegramUpdate.getMessage().getText());
-                    }
-                    break;
-                }
-            }
+            return;
         }
 
-        return;
+        if (!isText) {
+            return;
+        }
+
+        String userAnswer = telegramUpdate.getMessage().getText();
+        switch (userAnswer) {
+            case TelegramBot.REGISTER_BUTTON: {
+                ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getAskUsersPhoneReplyKeyboardMarkup();
+                TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, "Поделитесь номером телефона (опционально)",
+                        replyKeyboardMarkup, telegramBot, UserStatus.VerifyPhone, userRepository, telegramChatRepository);
+                break;
+            }
+            case TelegramBot.NEXT_BUTTON: {
+                askUsersEmail(chatId, "Введите свой e-mail адрес (обязательно)");
+                break;
+            }
+            case TelegramBot.CANCEL_REGISTRATION_BUTTON: {
+                ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(user);
+                TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, "Регистрация отменена",
+                        replyKeyboardMarkup, telegramBot, UserStatus.NotRegistered, userRepository, telegramChatRepository);
+
+                break;
+            }
+            default: {
+                if (status == UserStatus.VerifyEmail) {
+                    checkUserEmail(chatId, user, telegramUpdate.getMessage().getText());
+                }
+                break;
+            }
+        }
     }
 
     private void askUsersEmail(Long chatId, String text) {
@@ -79,7 +75,7 @@ public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
     }
 
     private void checkUserEmail(Long chatId, TelegramUser user, String text) {
-        if (EMailUtils.isValidEmailAddress(text)) {
+        if (isValid(text)) {
             user.setStatus(UserStatus.MainPage);
             user.setRegistered(true);
             user.setEmail(text);
@@ -92,6 +88,10 @@ public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
         } else {
             askUsersEmail(chatId, "Введен некорректный email. Повторите ввод");
         }
+    }
+
+    private boolean isValid(String email) {
+        return EmailValidator.getInstance().isValid(email);
     }
 
 }
