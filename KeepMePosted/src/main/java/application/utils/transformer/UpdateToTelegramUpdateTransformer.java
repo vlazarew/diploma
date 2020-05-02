@@ -12,7 +12,7 @@ public class UpdateToTelegramUpdateTransformer implements Transformer<Update, Te
     public TelegramUpdate transform(Update chat) {
         return TelegramUpdate.builder()
                 .id(chat.getUpdateId())
-                .creationDate(LocalDateTime.now())
+//                .creationDate(LocalDateTime.now())
                 .build();
     }
 }

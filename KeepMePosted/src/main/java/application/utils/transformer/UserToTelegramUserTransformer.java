@@ -12,7 +12,7 @@ public class UserToTelegramUserTransformer implements Transformer<User, Telegram
     public TelegramUser transform(User chat) {
         return TelegramUser.builder()
                 .id(chat.getId())
-                .creationDate(LocalDateTime.now())
+//                .creationDate(LocalDateTime.now())
                 .userName(chat.getUserName())
                 .bot(chat.getBot())
                 .lastName(chat.getLastName())

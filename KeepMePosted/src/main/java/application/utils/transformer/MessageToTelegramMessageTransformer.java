@@ -12,7 +12,7 @@ public class MessageToTelegramMessageTransformer implements Transformer<Message,
     public TelegramMessage transform(Message chat) {
         return TelegramMessage.builder()
                 .id(chat.getMessageId())
-                .creationDate(LocalDateTime.now())
+//                .creationDate(LocalDateTime.now())
                 .text(chat.getText())
                 .build();
     }

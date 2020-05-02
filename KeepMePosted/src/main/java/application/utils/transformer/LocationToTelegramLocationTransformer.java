@@ -13,7 +13,7 @@ public class LocationToTelegramLocationTransformer implements Transformer<Locati
     @Override
     public TelegramLocation transform(Location chat) {
         return TelegramLocation.builder()
-                .creationDate(LocalDateTime.now())
+//                .creationDate(LocalDateTime.now())
                 .latitude(chat.getLatitude())
                 .longitude(chat.getLongitude())
                 .city(YandexGeoCoder.getCityByCoordinates(chat.getLongitude().toString()

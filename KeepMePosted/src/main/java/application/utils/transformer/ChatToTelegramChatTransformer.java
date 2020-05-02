@@ -14,7 +14,7 @@ public class ChatToTelegramChatTransformer implements Transformer<Chat, Telegram
     public TelegramChat transform(Chat chat) {
         return TelegramChat.builder()
                 .id(chat.getId())
-                .creationDate(LocalDateTime.now())
+//                .creationDate(LocalDateTime.now())
                 .userChat(chat.isUserChat())
                 .channelChat(chat.isChannelChat())
                 .groupChat(chat.isGroupChat())

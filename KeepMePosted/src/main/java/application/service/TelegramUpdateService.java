@@ -2,6 +2,7 @@ package application.service;
 
 import application.data.model.telegram.*;
 import application.data.repository.telegram.*;
+import application.utils.mapper.*;
 import application.utils.transformer.Transformer;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -30,60 +31,37 @@ public class TelegramUpdateService {
     TelegramContactRepository telegramContactRepository;
     TelegramLocationRepository telegramLocationRepository;
 
+    TelegramUserMapper telegramUserMapper;
+    TelegramChatMapper telegramChatMapper;
+    TelegramContactMapper telegramContactMapper;
+    TelegramLocationMapper telegramLocationMapper;
+    TelegramMessageMapper telegramMessageMapper;
+    TelegramUpdateMapper telegramUpdateMapper;
+
     // Турбо метод, записывающий все изменения, которые пришли по апдейту
     public TelegramUpdate save(Update update) {
 
-        boolean isContact = update.getMessage().hasContact();
-        boolean isText = update.getMessage().hasText();
-        boolean isLocation = update.getMessage().hasLocation();
+        Message message = update.getMessage();
+        boolean hasContact = message.hasContact();
+        boolean hasText = message.hasText();
+        boolean hasLocation = message.hasLocation();
 
         // Находим персонажа или создаем его
-        TelegramUser telegramUser = userRepository.findById(update.getMessage().getFrom().getId())
-                .orElseGet(() -> {
-                    TelegramUser transformedUser = userToUserTransformer.transform(update.getMessage().getFrom());
-                    transformedUser.setStatus(UserStatus.getInitialStatus());
-                    return userRepository.save(transformedUser);
-                });
+        TelegramUser telegramUser = saveFindUser(message);
 
         // Находим или создаем чат
-        TelegramChat telegramChat = telegramChatRepository.findById(update.getMessage().getChat().getId())
-                .orElseGet(() -> {
-                    TelegramChat transformedChat = chatTelegramChatTransformer.transform(update.getMessage().getChat());
-                    transformedChat.setUser(telegramUser);
-                    return telegramChatRepository.save(transformedChat);
-                });
+        TelegramChat telegramChat = saveFindChat(message, telegramUser);
 
+        // Сохранение контакта
         TelegramContact telegramContact = null;
-        if (isContact) {
-            // Сохранение контакта
-            telegramContact = telegramContactRepository.findById(update.getMessage().getFrom().getId())
-                    .orElseGet(() -> {
-                        TelegramContact transformedContact = contactTelegramContactTransformer.transform(update.getMessage().getContact());
-                        transformedContact.setUser(telegramUser);
-
-                        // Пользователю сохраняем номер телефона
-                        telegramUser.setPhone(transformedContact.getPhoneNumber());
-                        userRepository.save(telegramUser);
-
-                        return telegramContactRepository.save(transformedContact);
-                    });
+        if (hasContact) {
+            telegramContact = saveFindContact(message, telegramUser);
         }
 
-        TelegramLocation telegramLocation;
-        if (isLocation) {
-            float longitude = update.getMessage().getLocation().getLongitude();
-            float latitude = update.getMessage().getLocation().getLatitude();
-            // Сохранение локации
-            telegramLocation = telegramLocationRepository.findByLongitudeAndLatitude(longitude, latitude);
-
-            if (telegramLocation == null) {
-                TelegramLocation transformedLocation = locationTelegramLocationTransformer.transform(update.getMessage().getLocation());
-                transformedLocation.setUser(telegramUser);
-                telegramLocationRepository.save(transformedLocation);
-
-                telegramUser.setLocation(transformedLocation);
-                userRepository.save(telegramUser);
-            }
+        // Сохранение локации
+        TelegramLocation telegramLocation = null;
+        if (hasLocation) {
+            telegramLocation = saveFindLocation(update, telegramUser);
         }
 
         // Запись истории сообщений
@@ -91,6 +69,7 @@ public class TelegramUpdateService {
         telegramMessage.setFrom(telegramUser);
         telegramMessage.setChat(telegramChat);
         telegramMessage.setContact(telegramContact);
+        telegramMessage.setLocation(telegramLocation);
         TelegramMessage savedTelegramMessage = telegramMessageRepository.save(telegramMessage);
 
         // Сохраняем все наши обновления
@@ -98,4 +77,63 @@ public class TelegramUpdateService {
         telegramUpdate.setMessage(savedTelegramMessage);
         return telegramUpdateRepository.save(telegramUpdate);
     }
+
+
+    private TelegramUser saveFindUser(Message message) {
+        return userRepository.findById(message.getFrom().getId())
+                .orElseGet(() -> {
+                    TelegramUser transformedUser = telegramUserMapper.toEntity(message.getFrom());
+                    transformedUser.setStatus(UserStatus.getInitialStatus());
+                    return userRepository.save(transformedUser);
+                });
+    }
+
+    private TelegramChat saveFindChat(Message message, TelegramUser telegramUser) {
+        Chat chat = message.getChat();
+        return telegramChatRepository.findById(chat.getId())
+                .orElseGet(() -> {
+                    TelegramChat transformedChat = telegramChatMapper.toEntity(chat);
+                    transformedChat.setUser(telegramUser);
+                    return telegramChatRepository.save(transformedChat);
+                });
+    }
+
+    private TelegramContact saveFindContact(Message message, TelegramUser telegramUser) {
+        TelegramContact telegramContact = telegramContactRepository.findById(telegramUser.getId())
+                .orElseGet(() -> {
+                    TelegramContact transformedContact = telegramContactMapper.toEntity(message.getContact());
+                    transformedContact.setUser(telegramUser);
+
+                    // Пользователю сохраняем номер телефона
+                    setUserPhone(telegramUser, transformedContact);
+
+                    return telegramContactRepository.save(transformedContact);
+                });
+        return telegramContact;
+    }
+
+    private void setUserPhone(TelegramUser telegramUser, TelegramContact transformedContact) {
+        telegramUser.setPhone(transformedContact.getPhoneNumber());
+        userRepository.save(telegramUser);
+    }
+
+    private TelegramLocation saveFindLocation(Update update, TelegramUser telegramUser) {
+        Location location = update.getMessage().getLocation();
+        float longitude = location.getLongitude();
+        float latitude = location.getLatitude();
+
+        TelegramLocation telegramLocation = telegramLocationRepository.findByLongitudeAndLatitude(longitude, latitude);
+
+        if (telegramLocation == null) {
+            TelegramLocation transformedLocation = locationTelegramLocationTransformer.transform(location);
+            transformedLocation.setUser(telegramUser);
+            telegramLocationRepository.save(transformedLocation);
+
+            telegramUser.setLocation(transformedLocation);
+            userRepository.save(telegramUser);
+        }
+        return telegramLocation;
+    }
+
+
 }

@@ -4,26 +4,24 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
-@EqualsAndHashCode(of = {"id"}) // ((
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TelegramChat {
+public class TelegramChat extends AbstractTelegramEntity {
 
     @Id
     Long id;
 
-    LocalDateTime creationDate;
     Boolean userChat;
     Boolean groupChat;
     Boolean channelChat;
     Boolean superGroupChat;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     TelegramUser user;
 }

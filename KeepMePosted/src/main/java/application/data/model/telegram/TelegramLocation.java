@@ -7,28 +7,26 @@ import lombok.experimental.FieldDefaults;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
-@EqualsAndHashCode(of = {"id"})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TelegramLocation {
+public class TelegramLocation extends AbstractTelegramEntity {
 
     @Id
     @GeneratedValue
     Long id;
 
-    LocalDateTime creationDate;
-
     Float longitude;
     Float latitude;
     String city;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     TelegramUser user;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     YandexWeatherTZInfo tzInfo;
 }

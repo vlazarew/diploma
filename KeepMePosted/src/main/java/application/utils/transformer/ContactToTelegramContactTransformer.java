@@ -16,7 +16,7 @@ public class ContactToTelegramContactTransformer implements Transformer<Contact,
                 .firstName(chat.getFirstName())
                 .lastName(chat.getLastName())
                 .phoneNumber(chat.getPhoneNumber())
-                .creationDate(LocalDateTime.now())
+//                .creationDate(LocalDateTime.now())
                 .build();
     }
 }

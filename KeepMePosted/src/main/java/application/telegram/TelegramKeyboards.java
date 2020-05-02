@@ -5,7 +5,6 @@ import application.data.model.service.ServiceSettings;
 import application.data.model.service.WebService;
 import application.data.model.telegram.TelegramUser;
 import application.data.repository.service.ServiceSettingsRepository;
-import application.telegram.TelegramBot;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
