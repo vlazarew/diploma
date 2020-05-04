@@ -1,5 +1,6 @@
 package application.utils.handler;
 
+import application.data.model.telegram.TelegramMessage;
 import application.data.model.telegram.TelegramUpdate;
 import application.data.model.telegram.TelegramUser;
 import application.data.model.telegram.UserStatus;
@@ -7,45 +8,45 @@ import application.data.repository.telegram.TelegramChatRepository;
 import application.data.repository.telegram.TelegramUserRepository;
 import application.telegram.TelegramBot;
 import application.telegram.TelegramKeyboards;
-import application.telegram.TelegramSendMessage;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.validator.EmailValidator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 @Component
 @Log4j2
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequiredArgsConstructor
-public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
-    TelegramBot telegramBot;
+public class RegisterPersonTelegramHandler extends AbstractTelegramHandler {
     TelegramUserRepository userRepository;
-    TelegramChatRepository telegramChatRepository;
+
+    @Autowired
+    public RegisterPersonTelegramHandler(TelegramUserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
-    public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
-        Long chatId = telegramUpdate.getMessage().getChat().getId();
-        TelegramUser user = telegramUpdate.getMessage().getFrom();
+    public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
+        TelegramMessage telegramMessage = telegramUpdate.getMessage();
+        Long chatId = telegramMessage.getChat().getId();
+        TelegramUser user = telegramMessage.getFrom();
         UserStatus status = user.getStatus();
 
-        if (isContact) {
+        if (hasContact) {
             askUsersEmail(chatId, "Введите свой e-mail адрес (обязательно)");
             return;
         }
 
-        if (!isText) {
+        if (!hasText) {
             return;
         }
 
-        String userAnswer = telegramUpdate.getMessage().getText();
+        String userAnswer = telegramMessage.getText();
         switch (userAnswer) {
             case TelegramBot.REGISTER_BUTTON: {
-                ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getAskUsersPhoneReplyKeyboardMarkup();
-                TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, "Поделитесь номером телефона (опционально)",
-                        replyKeyboardMarkup, telegramBot, UserStatus.VerifyPhone, userRepository, telegramChatRepository);
+                askUserPhone(chatId, "Поделитесь номером телефона (опционально)");
                 break;
             }
             case TelegramBot.NEXT_BUTTON: {
@@ -53,15 +54,12 @@ public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
                 break;
             }
             case TelegramBot.CANCEL_REGISTRATION_BUTTON: {
-                ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(user);
-                TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, "Регистрация отменена",
-                        replyKeyboardMarkup, telegramBot, UserStatus.NotRegistered, userRepository, telegramChatRepository);
-
+                sendMessageToUserByCustomMainKeyboard(chatId, user, "Регистрация отменена", UserStatus.NotRegistered);
                 break;
             }
             default: {
                 if (status == UserStatus.VerifyEmail) {
-                    checkUserEmail(chatId, user, telegramUpdate.getMessage().getText());
+                    checkUserEmail(chatId, user, userAnswer);
                 }
                 break;
             }
@@ -70,8 +68,12 @@ public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
 
     private void askUsersEmail(Long chatId, String text) {
         ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getAskUsersEmailReplyKeyboardMarkup();
-        TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, text,
-                replyKeyboardMarkup, telegramBot, UserStatus.VerifyEmail, userRepository, telegramChatRepository);
+        sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, UserStatus.VerifyEmail);
+    }
+
+    private void askUserPhone(Long chatId, String text) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getAskUsersPhoneReplyKeyboardMarkup();
+        sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, UserStatus.VerifyPhone);
     }
 
     private void checkUserEmail(Long chatId, TelegramUser user, String text) {
@@ -81,10 +83,7 @@ public class RegisterPersonTelegramHandler implements TelegramMessageHandler {
             user.setEmail(text);
             userRepository.save(user);
 
-            ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(user);
-            TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, "Успешная регистрация!",
-                    replyKeyboardMarkup, telegramBot, null, userRepository, telegramChatRepository);
-
+            sendMessageToUserByCustomMainKeyboard(chatId, user, "Успешная регистрация!");
         } else {
             askUsersEmail(chatId, "Введен некорректный email. Повторите ввод");
         }

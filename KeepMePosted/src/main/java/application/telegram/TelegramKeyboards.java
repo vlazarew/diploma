@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -124,8 +125,8 @@ public class TelegramKeyboards {
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow firstKeyboardRow = new KeyboardRow();
 
-        ServiceSettings serviceSettings = serviceSettingsRepository.findByUserAndService(user, WebService.YandexWeather);
-        if (serviceSettings != null && serviceSettings.getActive()) {
+        Optional<ServiceSettings> serviceSettings = serviceSettingsRepository.findByUserAndService(user, WebService.YandexWeather);
+        if (serviceSettings.isPresent() && serviceSettings.get().getActive()) {
             firstKeyboardRow.add(new KeyboardButton(TelegramBot.DEACTIVATE_WEATHER_BUTTON));
         } else {
             firstKeyboardRow.add(new KeyboardButton(TelegramBot.ACTIVATE_WEATHER_BUTTON));

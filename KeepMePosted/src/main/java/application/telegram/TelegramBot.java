@@ -1,9 +1,8 @@
 package application.telegram;
 
 import application.data.model.telegram.TelegramUpdate;
-import application.data.repository.telegram.TelegramChatRepository;
-import application.data.repository.telegram.TelegramUserRepository;
 import application.service.TelegramUpdateService;
+import application.service.geocoder.YandexGeoCoderService;
 import application.utils.handler.TelegramMessageHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -66,32 +65,27 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Value("${bot.token}")
     String botToken;
 
-    final TelegramUserRepository userRepository;
-    final TelegramChatRepository telegramChatRepository;
     final TelegramUpdateService telegramUpdateService;
     final List<TelegramMessageHandler> telegramMessageHandlers;
 
     @Autowired
     public TelegramBot(TelegramUpdateService telegramUpdateService,
-                       @Lazy List<TelegramMessageHandler> telegramMessageHandlers, TelegramUserRepository userRepository,
-                       TelegramChatRepository telegramChatRepository) {
+                       @Lazy List<TelegramMessageHandler> telegramMessageHandlers) {
         this.telegramUpdateService = telegramUpdateService;
-        this.userRepository = userRepository;
         this.telegramMessageHandlers = telegramMessageHandlers;
-        this.telegramChatRepository = telegramChatRepository;
     }
 
     @Override
     public void onUpdateReceived(Update update) {
 
         Message message = update.getMessage();
-        boolean isContact = message.hasContact(); //has prefix
-        boolean isText = message.hasText();
-        boolean isLocation = message.hasLocation();
+        boolean hasContact = message.hasContact();
+        boolean hasText = message.hasText();
+        boolean hasLocation = message.hasLocation();
 
         TelegramUpdate telegramUpdate = telegramUpdateService.save(update);
-        telegramMessageHandlers.forEach(telegramMessageHandler -> telegramMessageHandler.handle(telegramUpdate, isText,
-                isContact, isLocation));
+        telegramMessageHandlers.forEach(telegramMessageHandler -> telegramMessageHandler.handle(telegramUpdate, hasText,
+                hasContact, hasLocation));
     }
 
     @Override

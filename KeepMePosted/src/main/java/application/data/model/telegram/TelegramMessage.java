@@ -3,7 +3,9 @@ package application.data.model.telegram;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -11,7 +13,6 @@ import javax.persistence.*;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class TelegramMessage extends AbstractTelegramEntity {
 
     @Id
@@ -19,15 +20,15 @@ public class TelegramMessage extends AbstractTelegramEntity {
 
     String text;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne
     TelegramContact contact;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne
     TelegramUser from;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne
     TelegramLocation location;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne
     TelegramChat chat;
 }

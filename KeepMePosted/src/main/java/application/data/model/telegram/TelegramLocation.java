@@ -1,17 +1,19 @@
 package application.data.model.telegram;
 
 import application.data.model.YandexWeather.YandexWeatherTZInfo;
+import application.service.geocoder.YandexGeoCoderService;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.*;
-import java.time.LocalDateTime;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class TelegramLocation extends AbstractTelegramEntity {
@@ -24,9 +26,17 @@ public class TelegramLocation extends AbstractTelegramEntity {
     Float latitude;
     String city;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne
     TelegramUser user;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne
     YandexWeatherTZInfo tzInfo;
+
+    @Override
+    public void toCreate() {
+        YandexGeoCoderService yandexGeoCoderService = new YandexGeoCoderService();
+        super.toCreate();
+        this.city = yandexGeoCoderService.getCityByCoordinates(this.longitude.toString()
+                + "," + this.latitude.toString());
+    }
 }

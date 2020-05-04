@@ -1,50 +1,36 @@
 package application.utils.handler;
 
+import application.data.model.telegram.TelegramMessage;
 import application.data.model.telegram.TelegramUpdate;
 import application.data.model.telegram.TelegramUser;
 import application.telegram.TelegramBot;
-import application.telegram.TelegramKeyboards;
-import application.telegram.TelegramSendMessage;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequiredArgsConstructor
-public class HelloTelegramMessageHandler implements TelegramMessageHandler {
-    TelegramBot telegramBot;
+public class HelloTelegramMessageHandler extends AbstractTelegramHandler {
 
     @Override
-    public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
-        if (!isText) {
+    public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
+        if (!hasText) {
             return;
         }
 
-        String messageText = telegramUpdate.getMessage().getText();
-        if (!messageText.startsWith(TelegramBot.START_COMMAND)) {
+        TelegramMessage telegramMessage = telegramUpdate.getMessage();
+        String messageText = telegramMessage.getText();
+
+        if (!messageText.startsWith(TelegramBot.START_COMMAND)
+                && !messageText.equals(TelegramBot.HELLO_BUTTON)) {
             return;
         }
 
-        if (!messageText.equals(TelegramBot.HELLO_BUTTON)) {
-            return;
-        }
 
-        Long chatId = telegramUpdate.getMessage().getChat().getId();
-        TelegramUser telegramUser = telegramUpdate.getMessage().getFrom();
-        String text = Stream.of("Привет, ", telegramUser.getLastName(), telegramUser.getFirstName()) // +
-                .filter(Objects::nonNull)
-                .collect(Collectors.joining(" "));
+        Long chatId = telegramMessage.getChat().getId();
+        TelegramUser telegramUser = telegramMessage.getFrom();
+        String text = "Привет, " + telegramUser.getLastName() + " " + telegramUser.getFirstName();
 
-        // method
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(telegramUser);
-        TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, telegramBot, null,
-                null, null);
+        sendMessageToUserByCustomMainKeyboard(chatId, telegramUser, text);
     }
 }

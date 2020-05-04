@@ -11,7 +11,6 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(of = {"id"})
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ServiceSettings {

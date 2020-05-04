@@ -3,26 +3,21 @@ package application.service;
 import application.data.model.telegram.*;
 import application.data.repository.telegram.*;
 import application.utils.mapper.*;
-import application.utils.transformer.Transformer;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Location;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 @Service
 @Transactional
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class TelegramUpdateService {
-
-    Transformer<Update, TelegramUpdate> updateTelegramUpdateTransformer;
-    Transformer<Message, TelegramMessage> messageTelegramMessageTransformer;
-    Transformer<User, TelegramUser> userToUserTransformer;
-    Transformer<Chat, TelegramChat> chatTelegramChatTransformer;
-    Transformer<Contact, TelegramContact> contactTelegramContactTransformer;
-    Transformer<Location, TelegramLocation> locationTelegramLocationTransformer;
 
     TelegramChatRepository telegramChatRepository;
     TelegramMessageRepository telegramMessageRepository;
@@ -43,7 +38,6 @@ public class TelegramUpdateService {
 
         Message message = update.getMessage();
         boolean hasContact = message.hasContact();
-        boolean hasText = message.hasText();
         boolean hasLocation = message.hasLocation();
 
         // Находим персонажа или создаем его
@@ -53,31 +47,18 @@ public class TelegramUpdateService {
         TelegramChat telegramChat = saveFindChat(message, telegramUser);
 
         // Сохранение контакта
-        TelegramContact telegramContact = null;
-        if (hasContact) {
-            telegramContact = saveFindContact(message, telegramUser);
-        }
+        TelegramContact telegramContact = hasContact ? saveFindContact(message, telegramUser) : null;
 
         // Сохранение локации
-        TelegramLocation telegramLocation = null;
-        if (hasLocation) {
-            telegramLocation = saveFindLocation(update, telegramUser);
-        }
+        TelegramLocation telegramLocation = hasLocation ? saveFindLocation(update, telegramUser) : null;
 
         // Запись истории сообщений
-        TelegramMessage telegramMessage = messageTelegramMessageTransformer.transform(update.getMessage());
-        telegramMessage.setFrom(telegramUser);
-        telegramMessage.setChat(telegramChat);
-        telegramMessage.setContact(telegramContact);
-        telegramMessage.setLocation(telegramLocation);
-        TelegramMessage savedTelegramMessage = telegramMessageRepository.save(telegramMessage);
+        TelegramMessage telegramMessage = saveTelegramMessage(message, telegramUser, telegramChat, telegramContact
+                , telegramLocation);
 
         // Сохраняем все наши обновления
-        TelegramUpdate telegramUpdate = updateTelegramUpdateTransformer.transform(update);
-        telegramUpdate.setMessage(savedTelegramMessage);
-        return telegramUpdateRepository.save(telegramUpdate);
+        return saveTelegramUpdate(update, telegramMessage);
     }
-
 
     private TelegramUser saveFindUser(Message message) {
         return userRepository.findById(message.getFrom().getId())
@@ -99,7 +80,7 @@ public class TelegramUpdateService {
     }
 
     private TelegramContact saveFindContact(Message message, TelegramUser telegramUser) {
-        TelegramContact telegramContact = telegramContactRepository.findById(telegramUser.getId())
+        return telegramContactRepository.findById(telegramUser.getId())
                 .orElseGet(() -> {
                     TelegramContact transformedContact = telegramContactMapper.toEntity(message.getContact());
                     transformedContact.setUser(telegramUser);
@@ -109,7 +90,6 @@ public class TelegramUpdateService {
 
                     return telegramContactRepository.save(transformedContact);
                 });
-        return telegramContact;
     }
 
     private void setUserPhone(TelegramUser telegramUser, TelegramContact transformedContact) {
@@ -122,18 +102,31 @@ public class TelegramUpdateService {
         float longitude = location.getLongitude();
         float latitude = location.getLatitude();
 
-        TelegramLocation telegramLocation = telegramLocationRepository.findByLongitudeAndLatitude(longitude, latitude);
+        return telegramLocationRepository.findByLongitudeAndLatitude(longitude, latitude)
+                .orElseGet(() -> {
+                    TelegramLocation transformedLocation = telegramLocationMapper.toEntity(location);
+                    transformedLocation.setUser(telegramUser);
 
-        if (telegramLocation == null) {
-            TelegramLocation transformedLocation = locationTelegramLocationTransformer.transform(location);
-            transformedLocation.setUser(telegramUser);
-            telegramLocationRepository.save(transformedLocation);
+                    telegramUser.setLocation(transformedLocation);
+                    userRepository.save(telegramUser);
 
-            telegramUser.setLocation(transformedLocation);
-            userRepository.save(telegramUser);
-        }
-        return telegramLocation;
+                    return telegramLocationRepository.save(transformedLocation);
+                });
     }
 
+    private TelegramMessage saveTelegramMessage(Message message, TelegramUser telegramUser, TelegramChat telegramChat,
+                                                TelegramContact telegramContact, TelegramLocation telegramLocation) {
+        TelegramMessage telegramMessage = telegramMessageMapper.toEntity(message);
+        telegramMessage.setFrom(telegramUser);
+        telegramMessage.setChat(telegramChat);
+        telegramMessage.setContact(telegramContact);
+        telegramMessage.setLocation(telegramLocation);
+        return telegramMessageRepository.save(telegramMessage);
+    }
 
+    private TelegramUpdate saveTelegramUpdate(Update update, TelegramMessage message) {
+        TelegramUpdate telegramUpdate = telegramUpdateMapper.toEntity(update);
+        telegramUpdate.setMessage(message);
+        return telegramUpdateRepository.save(telegramUpdate);
+    }
 }

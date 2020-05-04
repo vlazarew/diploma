@@ -1,5 +1,6 @@
 package application.data.model.YandexWeather;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -10,12 +11,11 @@ import javax.persistence.Table;
 
 @Entity
 @Data
-@EqualsAndHashCode(of = {"id"})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Table(name = "weather_TZ_Info")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class YandexWeatherTZInfo {
 
     @Id

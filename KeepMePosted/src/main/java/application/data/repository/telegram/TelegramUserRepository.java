@@ -11,11 +11,4 @@ public interface TelegramUserRepository extends CrudRepository<TelegramUser, Int
 
     Optional<TelegramUser> findById(Integer id);
 
-//    @Query("select u " +
-//            "from User u " +
-//            "where u.notified = false and not u.phone is null and not u.email is null")
-//    List<User> findNewUsers();
-//
-//    User findByChatId(long id);
-
 }

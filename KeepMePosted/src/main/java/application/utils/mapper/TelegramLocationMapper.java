@@ -1,6 +1,9 @@
 package application.utils.mapper;
 
 import application.data.model.telegram.TelegramLocation;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Location;
@@ -8,17 +11,24 @@ import org.telegram.telegrambots.meta.api.objects.Location;
 import javax.annotation.PostConstruct;
 
 @Component
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TelegramLocationMapper extends AbstractMapper<TelegramLocation, Location> {
 
+    ModelMapper mapper;
+
     @Autowired
-    TelegramLocationMapper() {
+    TelegramLocationMapper(ModelMapper mapper) {
         super(TelegramLocation.class, Location.class);
+        this.mapper = mapper;
     }
 
     @PostConstruct
     public void setupMapper() {
-//        mapper.createTypeMap(TelegramLocation.class, TelegramLocationDTO.class)
-//                .addMapping(m -> m.skip(TelegramLocation::setId)).setPostConverter(toDtoConverter());
+        mapper.createTypeMap(Location.class, TelegramLocation.class)
+                .addMappings(m -> {
+                    m.map(Location::getLatitude, TelegramLocation::setLatitude);
+                    m.map(Location::getLongitude, TelegramLocation::setLongitude);
+                }).setPostConverter(toEntityConverter());
 
     }
 }
