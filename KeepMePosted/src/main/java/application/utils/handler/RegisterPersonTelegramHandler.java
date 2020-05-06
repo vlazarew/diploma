@@ -44,26 +44,16 @@ public class RegisterPersonTelegramHandler extends AbstractTelegramHandler {
         }
 
         String userAnswer = telegramMessage.getText();
-        switch (userAnswer) {
-            case TelegramBot.REGISTER_BUTTON: {
-                askUserPhone(chatId, "Поделитесь номером телефона (опционально)");
-                break;
-            }
-            case TelegramBot.NEXT_BUTTON: {
-                askUsersEmail(chatId, "Введите свой e-mail адрес (обязательно)");
-                break;
-            }
-            case TelegramBot.CANCEL_REGISTRATION_BUTTON: {
-                sendMessageToUserByCustomMainKeyboard(chatId, user, "Регистрация отменена", UserStatus.NotRegistered);
-                break;
-            }
-            default: {
-                if (status == UserStatus.VerifyEmail) {
-                    checkUserEmail(chatId, user, userAnswer);
-                }
-                break;
-            }
+        if (userAnswer.equals(REGISTER_BUTTON)) {
+            askUserPhone(chatId, "Поделитесь номером телефона (опционально)");
+        } else if (userAnswer.equals(NEXT_BUTTON)) {
+            askUsersEmail(chatId, "Введите свой e-mail адрес (обязательно)");
+        } else if (userAnswer.equals(CANCEL_REGISTRATION_BUTTON)) {
+            sendMessageToUserByCustomMainKeyboard(chatId, user, "Регистрация отменена", UserStatus.NotRegistered);
+        } else if (status == UserStatus.VerifyEmail) {
+            checkUserEmail(chatId, user, userAnswer);
         }
+
     }
 
     private void askUsersEmail(Long chatId, String text) {

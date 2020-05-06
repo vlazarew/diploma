@@ -21,8 +21,8 @@ public class HelloTelegramMessageHandler extends AbstractTelegramHandler {
         TelegramMessage telegramMessage = telegramUpdate.getMessage();
         String messageText = telegramMessage.getText();
 
-        if (!messageText.startsWith(TelegramBot.START_COMMAND)
-                && !messageText.equals(TelegramBot.HELLO_BUTTON)) {
+        if (!messageText.startsWith(START_COMMAND)
+                && !messageText.equals(HELLO_BUTTON)) {
             return;
         }
 

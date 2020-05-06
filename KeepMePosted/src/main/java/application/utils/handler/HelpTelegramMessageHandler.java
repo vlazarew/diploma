@@ -22,7 +22,7 @@ public class HelpTelegramMessageHandler extends AbstractTelegramHandler{
         TelegramMessage telegramMessage = telegramUpdate.getMessage();
         String messageText = telegramMessage.getText();
 
-        if (!messageText.startsWith(TelegramBot.HELP_BUTTON)) {
+        if (!messageText.startsWith(HELP_BUTTON)) {
             return;
         }
 

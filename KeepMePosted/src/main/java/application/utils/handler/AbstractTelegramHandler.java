@@ -12,6 +12,8 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -20,6 +22,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Log4j2
+@PropertySource("classpath:interface.properties")
 public abstract class AbstractTelegramHandler implements TelegramMessageHandler {
 
     @Autowired
@@ -30,6 +33,57 @@ public abstract class AbstractTelegramHandler implements TelegramMessageHandler 
     TelegramChatRepository telegramChatRepository;
     @Autowired
     ServiceSettingsRepository serviceSettingsRepository;
+
+    //region Кнопки в приложении
+    @Value("${telegram.START_COMMAND}")
+    public String START_COMMAND;
+
+    // Базовые кнопки
+    @Value("${telegram.HELLO_BUTTON}")
+    public String HELLO_BUTTON;
+    @Value("${telegram.HELP_BUTTON}")
+    public String HELP_BUTTON;
+
+    // Кнопки регистрации
+    @Value("${telegram.REGISTER_BUTTON}")
+    public String REGISTER_BUTTON;
+    @Value("${telegram.CANCEL_REGISTRATION_BUTTON}")
+    public String CANCEL_REGISTRATION_BUTTON;
+    @Value("${telegram.NEXT_BUTTON}")
+    public String NEXT_BUTTON;
+    @Value("${telegram.SHARE_PHONE_NUMBER}")
+    public String SHARE_PHONE_NUMBER;
+    @Value("${telegram.CONFIRM_EMAIL}")
+    public String CONFIRM_EMAIL;
+
+    // Кнопки настроек
+    @Value("${telegram.SETTINGS_BUTTON}")
+    public String SETTINGS_BUTTON;
+    @Value("${telegram.NOTIFICATION_SETTINGS_BUTTON}")
+    public String NOTIFICATION_SETTINGS_BUTTON;
+    @Value("${telegram.SETTINGS_BACK_BUTTON}")
+    public String SETTINGS_BACK_BUTTON;
+
+    // Интеграция с погодой
+    @Value("${telegram.WEATHER_SETTINGS_BUTTON}")
+    public String WEATHER_SETTINGS_BUTTON;
+    @Value("${telegram.ACTIVATE_WEATHER_BUTTON}")
+    public String ACTIVATE_WEATHER_BUTTON;
+    @Value("${telegram.DEACTIVATE_WEATHER_BUTTON}")
+    public String DEACTIVATE_WEATHER_BUTTON;
+    @Value("${telegram.SHARE_LOCATION_BUTTON}")
+    public String SHARE_LOCATION_BUTTON;
+    @Value("${telegram.ADD_CITY_WEATHER_BUTTON}")
+    public String ADD_CITY_WEATHER_BUTTON;
+    @Value("${telegram.REMOVE_CITY_WEATHER_BUTTON}")
+    public String REMOVE_CITY_WEATHER_BUTTON;
+    @Value("${telegram.LIST_FOLLOWING_CITIES_BUTTON}")
+    public String LIST_FOLLOWING_CITIES_BUTTON;
+    @Value("${telegram.CANCEL_BUTTON}")
+    public String CANCEL_BUTTON;
+    @Value("${telegram.WEATHER_IN_CURRENT_LOCATION_BUTTON}")
+    public String WEATHER_IN_CURRENT_LOCATION_BUTTON;
+    //endregion
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
