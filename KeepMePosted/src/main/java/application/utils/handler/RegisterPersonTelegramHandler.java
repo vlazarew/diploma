@@ -18,14 +18,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 
 @Component
 @Log4j2
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class RegisterPersonTelegramHandler extends AbstractTelegramHandler {
-    TelegramUserRepository userRepository;
-
-    @Autowired
-    public RegisterPersonTelegramHandler(TelegramUserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
@@ -57,12 +51,12 @@ public class RegisterPersonTelegramHandler extends AbstractTelegramHandler {
     }
 
     private void askUsersEmail(Long chatId, String text) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getAskUsersEmailReplyKeyboardMarkup();
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getAskUsersEmailReplyKeyboardMarkup();
         sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, UserStatus.VerifyEmail);
     }
 
     private void askUserPhone(Long chatId, String text) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getAskUsersPhoneReplyKeyboardMarkup();
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getAskUsersPhoneReplyKeyboardMarkup();
         sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, UserStatus.VerifyPhone);
     }
 

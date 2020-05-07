@@ -9,6 +9,7 @@ import application.utils.mapper.AbstractMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,11 +19,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 @Controller
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class SendMessageController extends AbstractTelegramHandler {
 
+    @Autowired
     TelegramChatRepository telegramChatRepository;
+    @Autowired
+    TelegramKeyboards telegramKeyboards;
 
     @PostMapping("/user/{userId}/send-message")
     @ResponseStatus(HttpStatus.OK)
@@ -30,7 +34,7 @@ public class SendMessageController extends AbstractTelegramHandler {
         telegramChatRepository.findByUserId(userId)
                 .ifPresent(telegramChat -> {
                     TelegramUser user = telegramChat.getUser();
-                    ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(user);
+                    ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getCustomReplyMainKeyboardMarkup(user);
                     sendTextMessageReplyKeyboardMarkup(telegramChat.getId(), message,
                             replyKeyboardMarkup, null);
                 });
@@ -42,7 +46,7 @@ public class SendMessageController extends AbstractTelegramHandler {
         telegramChatRepository.findAll()
                 .forEach(telegramChat -> {
                     TelegramUser user = telegramChat.getUser();
-                    ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(user);
+                    ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getCustomReplyMainKeyboardMarkup(user);
                     sendTextMessageReplyKeyboardMarkup(telegramChat.getId(), message,
                             replyKeyboardMarkup, null);
                 });

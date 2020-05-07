@@ -35,29 +35,15 @@ public class SettingsTelegramHandler extends AbstractTelegramHandler {
 
         String userAnswer = telegramMessage.getText();
 
-        switch (userAnswer) {
-            case TelegramBot.SETTINGS_BUTTON: {
-                sendSettingsKeyboard(chatId, "Настройки бота", UserStatus.Settings);
-                break;
-            }
-            case TelegramBot.NOTIFICATION_SETTINGS_BUTTON: {
-                sendSettingsKeyboard(chatId, "Настройка графика оповещений в разработке");
-                break;
-            }
-            case TelegramBot.WEATHER_SETTINGS_BUTTON: {
-                sendWeatherSettingsMessage(chatId, user, "Настройки рассылки погоды", UserStatus.WeatherSettings);
-                break;
-            }
-            case TelegramBot.SETTINGS_BACK_BUTTON: {
-                if (user.getStatus() == UserStatus.Settings) {
-                    sendMessageToUserByCustomMainKeyboard(chatId, user, "Главная страница", UserStatus.MainPage);
-                }
-            }
-            default: {
-                break;
-            }
-
+        if (userAnswer.equals(SETTINGS_BUTTON)) {
+            sendSettingsKeyboard(chatId, "Настройки бота", UserStatus.Settings);
+        } else if (userAnswer.equals(NOTIFICATION_SETTINGS_BUTTON)) {
+            sendSettingsKeyboard(chatId, "Настройка графика оповещений в разработке");
+        } else if (userAnswer.equals(WEATHER_SETTINGS_BUTTON)) {
+            sendWeatherSettingsMessage(chatId, user, "Настройки рассылки погоды", UserStatus.WeatherSettings);
+        } else if (userAnswer.equals(SETTINGS_BACK_BUTTON) && user.getStatus() == UserStatus.Settings) {
+            sendMessageToUserByCustomMainKeyboard(chatId, user, "Главная страница", UserStatus.MainPage);
         }
-    }
 
+    }
 }

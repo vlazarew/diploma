@@ -28,11 +28,13 @@ public abstract class AbstractTelegramHandler implements TelegramMessageHandler 
     @Autowired
     TelegramBot telegramBot;
     @Autowired
-    TelegramUserRepository userRepository;
+    public TelegramUserRepository userRepository;
     @Autowired
     TelegramChatRepository telegramChatRepository;
     @Autowired
-    ServiceSettingsRepository serviceSettingsRepository;
+    public ServiceSettingsRepository serviceSettingsRepository;
+    @Autowired
+    public TelegramKeyboards telegramKeyboards;
 
     //region Кнопки в приложении
     @Value("${telegram.START_COMMAND}")
@@ -91,25 +93,25 @@ public abstract class AbstractTelegramHandler implements TelegramMessageHandler 
 
     @Override
     public void sendMessageToUserByCustomMainKeyboard(Long chatId, TelegramUser telegramUser, String text) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(telegramUser);
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getCustomReplyMainKeyboardMarkup(telegramUser);
         sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, null);
     }
 
     @Override
     public void sendMessageToUserByCustomMainKeyboard(Long chatId, TelegramUser telegramUser, String text, UserStatus status) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(telegramUser);
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getCustomReplyMainKeyboardMarkup(telegramUser);
         sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, status);
     }
 
     @Override
     public void sendSettingsKeyboard(Long chatId, String text) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getMainSettingsKeyboard();
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getMainSettingsKeyboard();
         sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, null);
     }
 
     @Override
     public void sendSettingsKeyboard(Long chatId, String text, UserStatus status) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getMainSettingsKeyboard();
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getMainSettingsKeyboard();
         sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, status);
     }
 
@@ -145,21 +147,21 @@ public abstract class AbstractTelegramHandler implements TelegramMessageHandler 
 
     @Override
     public void sendWeatherSettingsMessage(Long chatId, TelegramUser user, String text) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getWeatherSettingsKeyboard(user,
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getWeatherSettingsKeyboard(user,
                 serviceSettingsRepository);
         sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, null);
     }
 
     @Override
     public void sendWeatherSettingsMessage(Long chatId, TelegramUser user, String text, UserStatus status) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getWeatherSettingsKeyboard(user,
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getWeatherSettingsKeyboard(user,
                 serviceSettingsRepository);
         sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, status);
     }
 
     @Override
     public void sendTextMessageAddDeleteCity(Long chatId, TelegramUser user, String text, UserStatus status) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getAddDeleteCityKeyboardMarkup();
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getAddDeleteCityKeyboardMarkup();
         sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, status);
     }
 }
