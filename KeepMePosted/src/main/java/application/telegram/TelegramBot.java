@@ -26,37 +26,6 @@ import java.util.List;
 @PropertySource("classpath:telegram.properties")
 public class TelegramBot extends TelegramLongPollingBot {
 
-    //region Кнопки в приложении
-    public static final String START_COMMAND = "/start";
-
-    // Базовые кнопки
-    public static final String HELLO_BUTTON = "Привет";
-    public static final String HELP_BUTTON = "Помощь";
-
-    // Кнопки регистрации
-    public static final String REGISTER_BUTTON = "Зарегистрироваться";
-    public static final String CANCEL_REGISTRATION_BUTTON = "Отмена регистрации";
-    public static final String NEXT_BUTTON = "Продолжить";
-    public static final String SHARE_PHONE_NUMBER = "Поделиться номером";
-    public static final String CONFIRM_EMAIL = "Подтвердить e-mail";
-
-    // Кнопки настроек
-    public static final String SETTINGS_BUTTON = "Настройки";
-    public static final String NOTIFICATION_SETTINGS_BUTTON = "Настройки оповещений";
-    public static final String SETTINGS_BACK_BUTTON = "Назад";
-
-    // Интеграция с погодой
-    public static final String WEATHER_SETTINGS_BUTTON = "Настройки рассылки погоды";
-    public static final String ACTIVATE_WEATHER_BUTTON = "Использовать рассылку погоды";
-    public static final String DEACTIVATE_WEATHER_BUTTON = "Отключить рассылку погоды";
-    public static final String SHARE_LOCATION_BUTTON = "Поделиться локацией";
-    public static final String ADD_CITY_WEATHER_BUTTON = "Добавить город";
-    public static final String REMOVE_CITY_WEATHER_BUTTON = "Удалить город";
-    public static final String LIST_FOLLOWING_CITIES_BUTTON = "Список отслеживаемых городов";
-    public static final String CANCEL_BUTTON = "Отмена";
-    public static final String WEATHER_IN_CURRENT_LOCATION_BUTTON = "Показать погоду в текущей локации";
-    //endregion
-
     @Getter
     @Value("${bot.name}")
     String botName;

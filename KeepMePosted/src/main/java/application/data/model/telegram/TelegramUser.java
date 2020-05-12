@@ -37,4 +37,7 @@ public class TelegramUser extends AbstractTelegramEntity {
 
     @OneToOne
     TelegramLocation location;
+
+//    @OneToOne
+//    TelegramChat chat;
 }

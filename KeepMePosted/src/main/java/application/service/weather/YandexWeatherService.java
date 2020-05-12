@@ -238,8 +238,8 @@ public class YandexWeatherService {
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>() {{
             add(new BasicNameValuePair("lat", latitude));
             add(new BasicNameValuePair("lon", longitude));
-            add(new BasicNameValuePair("extra", "true"));
-            add(new BasicNameValuePair("limit", "3"));
+//            add(new BasicNameValuePair("extra", "true"));
+            add(new BasicNameValuePair("limit", "1"));
         }};
 
         urlParameters.forEach(nameValuePair -> requestUrl

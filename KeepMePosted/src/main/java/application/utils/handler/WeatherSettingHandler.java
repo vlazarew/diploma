@@ -1,21 +1,11 @@
 package application.utils.handler;
 
-import application.data.model.YandexWeather.*;
-import application.data.model.service.ServiceSettings;
+import application.data.model.service.NotificationServiceSettings;
 import application.data.model.service.WeatherSettings;
 import application.data.model.service.WebService;
 import application.data.model.telegram.*;
-import application.data.repository.service.ServiceSettingsRepository;
-import application.data.repository.service.WeatherSettingsRepository;
-import application.data.repository.telegram.TelegramChatRepository;
-import application.data.repository.telegram.TelegramLocationRepository;
-import application.data.repository.telegram.TelegramUserRepository;
 import application.service.geocoder.YandexGeoCoderService;
-import application.service.weather.
-        YandexWeatherService;
-import application.telegram.TelegramBot;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
@@ -23,18 +13,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequiredArgsConstructor
 @Log4j2
 public class WeatherSettingHandler extends AbstractTelegramHandler {
-    WeatherSettingsRepository weatherSettingsRepository;
     YandexGeoCoderService yandexGeoCoderService;
-    YandexWeatherService yandexWeatherService;
-    TelegramLocationRepository telegramLocationRepository;
+
+    public WeatherSettingHandler(YandexGeoCoderService yandexGeoCoderService) {
+        this.yandexGeoCoderService = yandexGeoCoderService;
+    }
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
@@ -65,9 +54,7 @@ public class WeatherSettingHandler extends AbstractTelegramHandler {
                 break;
             }
             case MainPage: {
-                String messageToUser = saveWeatherInfoAndDoMessageToUser(user, true);
-
-                sendMessageToUserByCustomMainKeyboard(chatId, user, messageToUser);
+                sendTextMessageForecastAboutFollowingCities(chatId, user, true);
                 break;
             }
         }
@@ -89,29 +76,29 @@ public class WeatherSettingHandler extends AbstractTelegramHandler {
 
     @Transactional
     boolean addWeatherSettingsToUser(TelegramUser user, WebService webService, String city) {
-        ServiceSettings serviceSettings = saveFindServiceSettings(user, webService);
+        NotificationServiceSettings notificationServiceSettings = saveFindServiceSettings(user, webService);
 
         WeatherSettings weatherSettings = weatherSettingsRepository.findByUserIdAndCity(user.getId(), city);
         boolean needToCreateNewRule = (weatherSettings == null);
         if (needToCreateNewRule) {
-            saveWeatherSettings(user, city, serviceSettings);
+            saveWeatherSettings(user, city, notificationServiceSettings);
         }
 
         return needToCreateNewRule;
     }
 
-    private ServiceSettings saveFindServiceSettings(TelegramUser user, WebService webService) {
-        return serviceSettingsRepository.findByUserAndService(user, webService)
+    private NotificationServiceSettings saveFindServiceSettings(TelegramUser user, WebService webService) {
+        return notificationServiceSettingsRepository.findByUserAndService(user, webService)
                 .orElseGet(() -> {
-                    ServiceSettings newServiceSettings = new ServiceSettings();
-                    newServiceSettings.setService(webService);
-                    newServiceSettings.setUser(user);
+                    NotificationServiceSettings newNotificationServiceSettings = new NotificationServiceSettings();
+                    newNotificationServiceSettings.setService(webService);
+                    newNotificationServiceSettings.setUser(user);
 
-                    return serviceSettingsRepository.save(newServiceSettings);
+                    return notificationServiceSettingsRepository.save(newNotificationServiceSettings);
                 });
     }
 
-    private void saveWeatherSettings(TelegramUser user, String city, ServiceSettings serviceSettings) {
+    private void saveWeatherSettings(TelegramUser user, String city, NotificationServiceSettings notificationServiceSettings) {
         HashMap<String, Float> longitudeLongitude = yandexGeoCoderService.getCoordinatesByCity(city);
 
         WeatherSettings weatherSettings = new WeatherSettings();
@@ -121,51 +108,10 @@ public class WeatherSettingHandler extends AbstractTelegramHandler {
             weatherSettings.setLatitude(longitudeLongitude.get("latitude"));
             weatherSettings.setLongitude(longitudeLongitude.get("longitude"));
         }
-        weatherSettings.setServiceSettings(serviceSettings);
+        weatherSettings.setNotificationServiceSettings(notificationServiceSettings);
 
         weatherSettingsRepository.save(weatherSettings);
     }
-
-    private String saveWeatherInfoAndDoMessageToUser(TelegramUser user, boolean isUserLocation) {
-        String messageToUser;
-        TelegramLocation userLocation = user.getLocation();
-        float longitude = userLocation.getLongitude();
-        float latitude = userLocation.getLatitude();
-
-        YandexWeather weather = yandexWeatherService.getWeatherByCoordinates(Float.toString(longitude),
-                Float.toString(latitude));
-
-        if (weather == null) {
-            messageToUser = "По вашему месторасположению не найдено информации о погоде!";
-        } else {
-            if (isUserLocation) {
-                saveUserTZ(user, userLocation, weather);
-            }
-
-            YandexWeatherFact fact = weather.getFact();
-            List<YandexWeatherForecast> forecast = weather.getForecasts();
-
-            messageToUser = "Сегодня:" + "\r\n\r\n" +
-                    "Сейчас " + yandexWeatherService.englishWeatherConditionToRussian(fact.getWeatherCondition()).toLowerCase()
-                    + "\r\n" +
-                    "Температура воздуха: " + fact.getTemp() + " ℃, по ощущениям: " + fact.getFeelsLike() + " ℃" + "\r\n" +
-                    "Влажность: " + fact.getHumidity() + "%";
-        }
-
-
-        return messageToUser;
-    }
-
-    @Transactional
-    void saveUserTZ(TelegramUser user, TelegramLocation userLocation, YandexWeather weather) {
-        YandexWeatherTZInfo tzInfo = weather.getInfo().getTzInfo();
-        user.setTzInfo(tzInfo);
-        userLocation.setTzInfo(tzInfo);
-
-        userRepository.save(user);
-        telegramLocationRepository.save(userLocation);
-    }
-
     //endregion
 
     //region Text methods
@@ -198,7 +144,9 @@ public class WeatherSettingHandler extends AbstractTelegramHandler {
                     "Удаление города отмено";
 
             sendWeatherSettingsMessage(chatId, user, messageToUser, UserStatus.WeatherSettings);
-        } else {
+        } else if (userAnswer.equals(SHOW_INFO_ABOUT_FOLLOWING_CITIES)) {
+            sendTextMessageForecastAboutFollowingCities(chatId, user, false);
+        } else if (status == UserStatus.AddCity || status == UserStatus.RemoveCity) {
             sendAddRemoveCityMessageToUser(chatId, user, userAnswer, status);
         }
 
@@ -222,16 +170,16 @@ public class WeatherSettingHandler extends AbstractTelegramHandler {
     }
 
     private void saveServiceSettings(TelegramUser user, boolean active) {
-        ServiceSettings serviceSettings = serviceSettingsRepository.findByUserAndService(user, WebService.YandexWeather)
+        NotificationServiceSettings notificationServiceSettings = notificationServiceSettingsRepository.findByUserAndService(user, WebService.YandexWeather)
                 .orElseGet(() -> {
-                    ServiceSettings newServiceSettings = new ServiceSettings();
-                    newServiceSettings.setService(WebService.YandexWeather);
-                    newServiceSettings.setUser(user);
-                    return newServiceSettings;
+                    NotificationServiceSettings newNotificationServiceSettings = new NotificationServiceSettings();
+                    newNotificationServiceSettings.setService(WebService.YandexWeather);
+                    newNotificationServiceSettings.setUser(user);
+                    return newNotificationServiceSettings;
                 });
 
-        serviceSettings.setActive(active);
-        serviceSettingsRepository.save(serviceSettings);
+        notificationServiceSettings.setActive(active);
+        notificationServiceSettingsRepository.save(notificationServiceSettings);
     }
 
     private String listWeatherSettingToUser(TelegramUser user, WebService webService) {

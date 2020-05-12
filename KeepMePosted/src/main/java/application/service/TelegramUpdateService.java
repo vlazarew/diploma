@@ -75,9 +75,18 @@ public class TelegramUpdateService {
                 .orElseGet(() -> {
                     TelegramChat transformedChat = telegramChatMapper.toEntity(chat);
                     transformedChat.setUser(telegramUser);
+
+                    // Пользователю сохраняем чат
+//                    setUserChat(telegramUser, transformedChat);
+
                     return telegramChatRepository.save(transformedChat);
                 });
     }
+
+//    private void setUserChat(TelegramUser telegramUser, TelegramChat transformedChat) {
+//        telegramUser.setChat(transformedChat);
+//        userRepository.save(telegramUser);
+//    }
 
     private TelegramContact saveFindContact(Message message, TelegramUser telegramUser) {
         return telegramContactRepository.findById(telegramUser.getId())

@@ -2,7 +2,7 @@ package application.data.model.telegram;
 
 public enum UserStatus {
     NotRegistered, VerifyPhone, VerifyEmail, WeatherSettings, Settings, MainPage, AddCity, RemoveCity,
-    QueryWeatherInLocationCity;
+    QueryWeatherInLocationCity, NotificationSettings;
 
     private static UserStatus[] userStatuses;
 

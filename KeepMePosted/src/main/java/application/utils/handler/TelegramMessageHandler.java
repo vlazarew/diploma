@@ -26,4 +26,9 @@ public interface TelegramMessageHandler {
 
     void sendTextMessageAddDeleteCity(Long chatId, TelegramUser user, String text, UserStatus status);
 
+    void sendTextMessageForecastAboutFollowingCities(Long chatId, TelegramUser telegramUser, boolean isUserLocation);
+
+    void sendNotificationSettingsKeyboard(Long chatId, TelegramUser telegramUser, String text, UserStatus status);
+
+    void checkNotification();
 }

@@ -4,15 +4,10 @@ import application.data.model.telegram.TelegramMessage;
 import application.data.model.telegram.TelegramUpdate;
 import application.data.model.telegram.TelegramUser;
 import application.data.model.telegram.UserStatus;
-import application.data.repository.telegram.TelegramChatRepository;
-import application.data.repository.telegram.TelegramUserRepository;
-import application.telegram.TelegramBot;
-import application.telegram.TelegramKeyboards;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.validator.EmailValidator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 

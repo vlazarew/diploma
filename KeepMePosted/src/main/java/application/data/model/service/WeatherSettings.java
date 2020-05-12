@@ -30,5 +30,5 @@ public class WeatherSettings {
     TelegramUser user;
 
     @ManyToOne
-    ServiceSettings serviceSettings;
+    NotificationServiceSettings notificationServiceSettings;
 }
