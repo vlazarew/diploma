@@ -20,7 +20,7 @@ import java.util.Set;
 public class YandexWeatherForecast {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy =  GenerationType.IDENTITY)
     Long id;
 
     // Дата прогноза в формате ГГГГ-ММ-ДД.

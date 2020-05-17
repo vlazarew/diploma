@@ -5,13 +5,17 @@ import application.data.model.telegram.TelegramUpdate;
 import application.data.model.telegram.TelegramUser;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class HelloTelegramMessageHandler extends AbstractTelegramHandler {
+@EnableAsync
+public class HelloTelegramMessageHandler extends TelegramHandler {
 
     @Override
+    @Async
     public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
         if (!hasText) {
             return;
@@ -30,6 +34,6 @@ public class HelloTelegramMessageHandler extends AbstractTelegramHandler {
         TelegramUser telegramUser = telegramMessage.getFrom();
         String text = "Привет, " + telegramUser.getLastName() + " " + telegramUser.getFirstName();
 
-        sendMessageToUserByCustomMainKeyboard(chatId, telegramUser, text);
+        sendMessageToUserByCustomMainKeyboard(chatId, telegramUser, text, null);
     }
 }

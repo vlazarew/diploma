@@ -8,15 +8,20 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.validator.EmailValidator;
+import org.checkerframework.checker.units.qual.A;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 @Component
 @Log4j2
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RegisterPersonTelegramHandler extends AbstractTelegramHandler {
+@EnableAsync
+public class RegisterPersonTelegramHandler extends TelegramHandler {
 
     @Override
+    @Async
     public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
         TelegramMessage telegramMessage = telegramUpdate.getMessage();
         Long chatId = telegramMessage.getChat().getId();
@@ -62,7 +67,7 @@ public class RegisterPersonTelegramHandler extends AbstractTelegramHandler {
             user.setEmail(text);
             userRepository.save(user);
 
-            sendMessageToUserByCustomMainKeyboard(chatId, user, "Успешная регистрация!");
+            sendMessageToUserByCustomMainKeyboard(chatId, user, "Успешная регистрация!", null);
         } else {
             askUsersEmail(chatId, "Введен некорректный email. Повторите ввод");
         }

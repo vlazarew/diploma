@@ -1,10 +1,12 @@
-package application.notification;
+package application.service.notification;
 
 import application.data.model.service.NotificationServiceSettings;
 import application.data.model.telegram.TelegramUser;
-import application.utils.handler.AbstractTelegramHandler;
+import application.data.repository.service.NotificationServiceSettingsRepository;
+import application.utils.handler.TelegramHandler;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -20,7 +22,12 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 @EnableScheduling
 @EnableAsync
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class NotificationService extends AbstractTelegramHandler {
+public class NotificationService {
+
+    @Autowired
+    TelegramHandler telegramHandler;
+    @Autowired
+    NotificationServiceSettingsRepository notificationServiceSettingsRepository;
 
     // 5 минут
     final long updatePeriod = 300000;
@@ -32,7 +39,8 @@ public class NotificationService extends AbstractTelegramHandler {
     @Scheduled(fixedRate = updatePeriod)
     @Async
     public void checkNotification() {
-        List<NotificationServiceSettings> notificationServiceSettingsList = notificationServiceSettingsRepository.findAllByActiveIsTrueAndCountOfNotificationPerDayGreaterThan(0);
+        List<NotificationServiceSettings> notificationServiceSettingsList =
+                notificationServiceSettingsRepository.findAllByActiveIsTrueAndCountOfNotificationPerDayGreaterThan(0);
         LocalDateTime currentDate = LocalDateTime.now();
 
         notificationServiceSettingsList.forEach(serviceSettings -> {
@@ -43,7 +51,7 @@ public class NotificationService extends AbstractTelegramHandler {
             if (differenceBetweenNotifications >= serviceSettings.getNotificationInterval()) {
                 TelegramUser user = serviceSettings.getUser();
                 Long chatId = Long.valueOf(user.getId());
-                sendTextMessageForecastAboutFollowingCities(chatId, user, false);
+                telegramHandler.sendTextMessageForecastAboutFollowingCities(chatId, user, false);
 
                 serviceSettings.setLastNotification(currentDate);
                 notificationServiceSettingsRepository.save(serviceSettings);

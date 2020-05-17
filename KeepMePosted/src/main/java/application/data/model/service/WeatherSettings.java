@@ -4,10 +4,7 @@ import application.data.model.telegram.TelegramUser;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 @Entity
 @Data
@@ -19,7 +16,7 @@ import javax.persistence.ManyToOne;
 public class WeatherSettings {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy =  GenerationType.IDENTITY)
     Long id;
 
     String city;

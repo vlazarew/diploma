@@ -5,10 +5,7 @@ import application.service.geocoder.YandexGeoCoderService;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -19,7 +16,7 @@ import javax.persistence.OneToOne;
 public class TelegramLocation extends AbstractTelegramEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy =  GenerationType.IDENTITY)
     Long id;
 
     Float longitude;

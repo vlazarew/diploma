@@ -14,11 +14,14 @@ import application.service.weather.YandexWeatherService;
 import application.telegram.TelegramBot;
 import application.telegram.TelegramKeyboards;
 import lombok.AccessLevel;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,13 +32,15 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Log4j2
 @PropertySource("classpath:interface.properties")
 @EnableAsync
-public abstract class AbstractTelegramHandler implements TelegramMessageHandler {
+public class TelegramHandler implements TelegramMessageHandler {
 
     @Autowired
     TelegramBot telegramBot;
@@ -126,28 +131,22 @@ public abstract class AbstractTelegramHandler implements TelegramMessageHandler 
     @Value("${telegram.NOTIFICATION_24_HOURS}")
     public String NOTIFICATION_24_HOURS;
     //endregion
+
+    @Value("${telegram.SHOW_FOLLOWING_NEWS}")
+    public String SHOW_FOLLOWING_NEWS;
+    @Value("${telegram.SHOW_ALL_NEWS}")
+    public String SHOW_ALL_NEWS;
     //endregion
 
     @Override
     public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
     }
 
-    @Override
-    public void sendMessageToUserByCustomMainKeyboard(Long chatId, TelegramUser telegramUser, String text) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getCustomReplyMainKeyboardMarkup(telegramUser);
-        sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, null);
-    }
-
+    //region Send messages
     @Override
     public void sendMessageToUserByCustomMainKeyboard(Long chatId, TelegramUser telegramUser, String text, UserStatus status) {
         ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getCustomReplyMainKeyboardMarkup(telegramUser);
         sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, status);
-    }
-
-    @Override
-    public void sendSettingsKeyboard(Long chatId, String text) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getMainSettingsKeyboard();
-        sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, null);
     }
 
     @Override
@@ -184,33 +183,10 @@ public abstract class AbstractTelegramHandler implements TelegramMessageHandler 
 
     }
 
-    private SendMessage makeSendMessage(Long chatId, String text, ReplyKeyboardMarkup replyKeyboardMarkup) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.enableMarkdown(true);
-        sendMessage.setChatId(chatId);
-        sendMessage.setText(text);
-
-        sendMessage.setReplyMarkup(replyKeyboardMarkup);
-        return sendMessage;
-    }
-
-    @Override
-    public void sendWeatherSettingsMessage(Long chatId, TelegramUser user, String text) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getWeatherSettingsKeyboard(user,
-                notificationServiceSettingsRepository);
-        sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, null);
-    }
-
     @Override
     public void sendWeatherSettingsMessage(Long chatId, TelegramUser user, String text, UserStatus status) {
         ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getWeatherSettingsKeyboard(user,
                 notificationServiceSettingsRepository);
-        sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, status);
-    }
-
-    @Override
-    public void sendTextMessageAddDeleteCity(Long chatId, TelegramUser user, String text, UserStatus status) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getAddDeleteCityKeyboardMarkup();
         sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, status);
     }
 
@@ -222,20 +198,32 @@ public abstract class AbstractTelegramHandler implements TelegramMessageHandler 
 
         textList.forEach(text -> sendTextMessageReplyKeyboardMarkup(chatId, text, null, null));
     }
+    //endregion
 
+    //region Help methods
+    private SendMessage makeSendMessage(Long chatId, String text, ReplyKeyboardMarkup replyKeyboardMarkup) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.enableMarkdown(true);
+        sendMessage.setChatId(chatId);
+        sendMessage.setText(text);
+
+        sendMessage.setReplyMarkup(replyKeyboardMarkup);
+        return sendMessage;
+    }
 
     private List<String> getInfoAboutFollowingCities(TelegramUser telegramUser, boolean isUserLocation) {
         List<WeatherSettings> weatherSettingsList = weatherSettingsRepository.findByUserId(telegramUser.getId());
         List<String> resultList = new ArrayList<>();
 
-        if (weatherSettingsList.size() == 0) {
-            resultList.add("Список отслеживаемых городов пуст.");
-        } else if (isUserLocation) {
+        if (isUserLocation) {
             TelegramLocation userLocation = telegramUser.getLocation();
             String infoAboutCity = saveWeatherInfoAndDoMessageToUser(userLocation.getLongitude(),
                     userLocation.getLatitude(), telegramUser, true, userLocation.getCity());
 
             resultList.add(infoAboutCity);
+
+        } else if (weatherSettingsList.size() == 0) {
+            resultList.add("Список отслеживаемых городов пуст.");
         } else {
             weatherSettingsList.forEach(weatherSettings -> {
                 String infoAboutCity = saveWeatherInfoAndDoMessageToUser(weatherSettings.getLongitude(),
@@ -243,6 +231,7 @@ public abstract class AbstractTelegramHandler implements TelegramMessageHandler 
 
                 resultList.add(infoAboutCity);
             });
+
         }
 
         return resultList;
@@ -276,6 +265,13 @@ public abstract class AbstractTelegramHandler implements TelegramMessageHandler 
         return messageToUser;
     }
 
+    @SneakyThrows
+    void checkFuture(Future<String> future) {
+        if (!future.isDone()) {
+            Thread.sleep(10);
+        }
+    }
+
     @Transactional
     void saveUserTZ(TelegramUser user, YandexWeather weather) {
         YandexWeatherTZInfo tzInfo = weather.getInfo().getTzInfo();
@@ -287,15 +283,6 @@ public abstract class AbstractTelegramHandler implements TelegramMessageHandler 
         userRepository.save(user);
         telegramLocationRepository.save(userLocation);
     }
+    //endregion
 
-    @Override
-    public void checkNotification() {
-    }
-
-    @Override
-    public void sendNotificationSettingsKeyboard(Long chatId, TelegramUser telegramUser, String text, UserStatus status) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getNotificationSettingsKeyboardMarkup(telegramUser,
-                notificationServiceSettingsRepository);
-        sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, status);
-    }
 }

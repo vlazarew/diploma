@@ -8,8 +8,11 @@ import application.service.geocoder.YandexGeoCoderService;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Log4j2
-public class WeatherSettingHandler extends AbstractTelegramHandler {
+@EnableAsync
+public class WeatherSettingHandler extends TelegramHandler {
     YandexGeoCoderService yandexGeoCoderService;
 
     public WeatherSettingHandler(YandexGeoCoderService yandexGeoCoderService) {
@@ -26,6 +30,7 @@ public class WeatherSettingHandler extends AbstractTelegramHandler {
     }
 
     @Override
+    @Async
     public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
         TelegramMessage telegramMessage = telegramUpdate.getMessage();
         Long chatId = telegramMessage.getChat().getId();
@@ -121,24 +126,24 @@ public class WeatherSettingHandler extends AbstractTelegramHandler {
             sendSettingsKeyboard(chatId, "Настройки бота", UserStatus.Settings);
         } else if (userAnswer.equals(ACTIVATE_WEATHER_BUTTON)) {
             saveServiceSettings(user, true);
-            sendWeatherSettingsMessage(chatId, user, "Оповещения включены");
+            sendWeatherSettingsMessage(chatId, user, "Оповещения включены", null);
         } else if (userAnswer.equals(DEACTIVATE_WEATHER_BUTTON)) {
             saveServiceSettings(user, false);
-            sendWeatherSettingsMessage(chatId, user, "Оповещения выключены");
+            sendWeatherSettingsMessage(chatId, user, "Оповещения выключены", null);
         } else if (userAnswer.equals(ADD_CITY_WEATHER_BUTTON)) {
             String listOfCities = listWeatherSettingToUser(user, WebService.YandexWeather);
             String messageToUser = listOfCities + "\r\n\r\n" + "Введите добавляемый город";
-            sendTextMessageAddDeleteCity(chatId, user, messageToUser, UserStatus.AddCity);
+            sendTextMessageAddDeleteCity(chatId, messageToUser, UserStatus.AddCity);
         } else if (userAnswer.equals(REMOVE_CITY_WEATHER_BUTTON)) {
 
             String listOfCities = listWeatherSettingToUser(user, WebService.YandexWeather);
             String messageToUser = listOfCities.equals("Список отслеживаемых городов пуст") ? listOfCities :
                     listOfCities + "\r\n\r\n" + "Введите удаляемый город";
 
-            sendTextMessageAddDeleteCity(chatId, user, messageToUser, UserStatus.RemoveCity);
+            sendTextMessageAddDeleteCity(chatId, messageToUser, UserStatus.RemoveCity);
         } else if (userAnswer.equals(LIST_FOLLOWING_CITIES_BUTTON)) {
             String listOfCities = listWeatherSettingToUser(user, WebService.YandexWeather);
-            sendWeatherSettingsMessage(chatId, user, listOfCities);
+            sendWeatherSettingsMessage(chatId, user, listOfCities, null);
         } else if (userAnswer.equals(CANCEL_BUTTON)) {
             String messageToUser = (status == UserStatus.AddCity) ? "Добавление города отмено" :
                     "Удаление города отмено";
@@ -206,6 +211,12 @@ public class WeatherSettingHandler extends AbstractTelegramHandler {
         }
 
         return needToDelete;
+    }
+
+
+    private void sendTextMessageAddDeleteCity(Long chatId, String text, UserStatus status) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getAddDeleteCityKeyboardMarkup();
+        sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, status);
     }
 
     //endregion

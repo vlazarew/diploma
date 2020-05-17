@@ -2,7 +2,6 @@ package application.telegram;
 
 import application.data.model.telegram.TelegramUpdate;
 import application.service.TelegramUpdateService;
-import application.service.geocoder.YandexGeoCoderService;
 import application.utils.handler.TelegramMessageHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -46,7 +45,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-
         Message message = update.getMessage();
         boolean hasContact = message.hasContact();
         boolean hasText = message.hasText();

@@ -5,23 +5,27 @@ import application.data.model.telegram.TelegramMessage;
 import application.data.model.telegram.TelegramUpdate;
 import application.data.model.telegram.TelegramUser;
 import application.data.model.telegram.UserStatus;
-import application.notification.NotificationService;
+import com.google.inject.internal.cglib.core.$DuplicatesPredicate;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 import java.util.HashMap;
 import java.util.List;
 
 @Component
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Log4j2
-public class SettingsTelegramHandler extends AbstractTelegramHandler {
+@EnableAsync
+public class SettingsTelegramHandler extends TelegramHandler {
 
     @Override
+    @Async
     public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
         TelegramMessage telegramMessage = telegramUpdate.getMessage();
         Long chatId = telegramMessage.getChat().getId();
@@ -75,12 +79,17 @@ public class SettingsTelegramHandler extends AbstractTelegramHandler {
         notificationServiceSettingsList.forEach(notificationServiceSettings -> {
             float notificationInterval = intervalDescription.get(text);
 
-//            if (notificationInterval != null) {
             notificationServiceSettings.setNotificationInterval(notificationInterval);
             notificationServiceSettings.setCountOfNotificationPerDay((int) (secondsInDay / notificationInterval));
             notificationServiceSettingsRepository.save(notificationServiceSettings);
-//            }
         });
     }
+
+    private void sendNotificationSettingsKeyboard(Long chatId, TelegramUser telegramUser, String text, UserStatus status) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getNotificationSettingsKeyboardMarkup(telegramUser,
+                notificationServiceSettingsRepository);
+        sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, status);
+    }
+
 
 }

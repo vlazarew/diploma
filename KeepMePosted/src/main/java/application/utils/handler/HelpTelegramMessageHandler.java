@@ -5,13 +5,17 @@ import application.data.model.telegram.TelegramUpdate;
 import application.data.model.telegram.TelegramUser;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class HelpTelegramMessageHandler extends AbstractTelegramHandler{
+@EnableAsync
+public class HelpTelegramMessageHandler extends TelegramHandler {
 
     @Override
+    @Async
     public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
         // Если не текст и не кнопка "Помощь"
         if (!hasText) {
@@ -30,6 +34,6 @@ public class HelpTelegramMessageHandler extends AbstractTelegramHandler{
         String text = (user.getRegistered() != null && user.getRegistered()) ? "Мы поможем тебе" :
                 "Мы помогаем только авторизированным пользователям";
 
-        sendMessageToUserByCustomMainKeyboard(chatId, user, text);
+        sendMessageToUserByCustomMainKeyboard(chatId, user, text, null);
     }
 }

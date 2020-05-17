@@ -19,7 +19,7 @@ import java.util.List;
 public class NotificationServiceSettings {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy =  GenerationType.IDENTITY)
     Long id;
 
     Boolean active = false;

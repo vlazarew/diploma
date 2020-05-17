@@ -17,7 +17,7 @@ import javax.persistence.*;
 public class YandexWeatherInfo {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy =  GenerationType.IDENTITY)
     Long id;
 
     // Широта (в градусах).

@@ -19,7 +19,7 @@ import java.util.Set;
 public class YandexWeather {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy =  GenerationType.IDENTITY)
     Long id;
 
     // Время сервера в формате Unixtime.

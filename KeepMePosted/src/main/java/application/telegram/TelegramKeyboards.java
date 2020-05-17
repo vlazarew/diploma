@@ -5,11 +5,11 @@ import application.data.model.service.NotificationServiceSettings;
 import application.data.model.service.WebService;
 import application.data.model.telegram.TelegramUser;
 import application.data.repository.service.NotificationServiceSettingsRepository;
-import application.notification.NotificationService;
-import application.utils.handler.AbstractTelegramHandler;
+import application.utils.handler.TelegramHandler;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
@@ -23,7 +23,10 @@ import java.util.Optional;
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class TelegramKeyboards extends AbstractTelegramHandler {
+public class TelegramKeyboards {
+
+    @Autowired
+    TelegramHandler telegramHandler;
 
     public ReplyKeyboardMarkup getCustomReplyMainKeyboardMarkup(TelegramUser user) {
         ReplyKeyboardMarkup replyKeyboardMarkup = getTunedReplyKeyboardMarkup();
@@ -32,21 +35,26 @@ public class TelegramKeyboards extends AbstractTelegramHandler {
 
         KeyboardRow keyboardFirstRow = new KeyboardRow();
         KeyboardRow keyboardSecondRow = new KeyboardRow();
+        KeyboardRow keyboardThirdRow = new KeyboardRow();
 
         if (user.getRegistered() != null && user.getRegistered()) {
-            keyboardFirstRow.add(new KeyboardButton(WEATHER_IN_CURRENT_LOCATION_BUTTON).setRequestLocation(true));
-            keyboardFirstRow.add(new KeyboardButton(SHOW_INFO_ABOUT_FOLLOWING_CITIES));
+            keyboardFirstRow.add(new KeyboardButton(telegramHandler.WEATHER_IN_CURRENT_LOCATION_BUTTON).setRequestLocation(true));
+            keyboardFirstRow.add(new KeyboardButton(telegramHandler.SHOW_INFO_ABOUT_FOLLOWING_CITIES));
 
-            keyboardSecondRow.add(new KeyboardButton(SETTINGS_BUTTON));
+            keyboardSecondRow.add(new KeyboardButton(telegramHandler.SHOW_ALL_NEWS));
+            keyboardSecondRow.add(new KeyboardButton(telegramHandler.SHOW_FOLLOWING_NEWS));
+
+            keyboardThirdRow.add(new KeyboardButton(telegramHandler.SETTINGS_BUTTON));
         } else {
-            keyboardFirstRow.add(new KeyboardButton(HELLO_BUTTON));
-            keyboardFirstRow.add(new KeyboardButton(REGISTER_BUTTON));
+            keyboardFirstRow.add(new KeyboardButton(telegramHandler.HELLO_BUTTON));
+            keyboardFirstRow.add(new KeyboardButton(telegramHandler.REGISTER_BUTTON));
 
-            keyboardSecondRow.add(new KeyboardButton(HELP_BUTTON));
+            keyboardSecondRow.add(new KeyboardButton(telegramHandler.HELP_BUTTON));
         }
 
         keyboard.add(keyboardFirstRow);
         keyboard.add(keyboardSecondRow);
+        keyboard.add(keyboardThirdRow);
 
         replyKeyboardMarkup.setKeyboard(keyboard);
         return replyKeyboardMarkup;
@@ -57,11 +65,11 @@ public class TelegramKeyboards extends AbstractTelegramHandler {
 
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow firstKeyboardRow = new KeyboardRow();
-        firstKeyboardRow.add(new KeyboardButton(SHARE_PHONE_NUMBER).setRequestContact(true));
-        firstKeyboardRow.add(new KeyboardButton(NEXT_BUTTON));
+        firstKeyboardRow.add(new KeyboardButton(telegramHandler.SHARE_PHONE_NUMBER).setRequestContact(true));
+        firstKeyboardRow.add(new KeyboardButton(telegramHandler.NEXT_BUTTON));
 
         KeyboardRow secondKeyboardRow = new KeyboardRow();
-        secondKeyboardRow.add(new KeyboardButton(CANCEL_REGISTRATION_BUTTON));
+        secondKeyboardRow.add(new KeyboardButton(telegramHandler.CANCEL_REGISTRATION_BUTTON));
 
         keyboard.add(firstKeyboardRow);
         keyboard.add(secondKeyboardRow);
@@ -76,7 +84,7 @@ public class TelegramKeyboards extends AbstractTelegramHandler {
 
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow firstKeyboardRow = new KeyboardRow();
-        firstKeyboardRow.add(new KeyboardButton(CANCEL_REGISTRATION_BUTTON));
+        firstKeyboardRow.add(new KeyboardButton(telegramHandler.CANCEL_REGISTRATION_BUTTON));
 
         keyboard.add(firstKeyboardRow);
 
@@ -90,13 +98,13 @@ public class TelegramKeyboards extends AbstractTelegramHandler {
 
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow firstKeyboardRow = new KeyboardRow();
-        firstKeyboardRow.add(new KeyboardButton(WEATHER_SETTINGS_BUTTON));
+        firstKeyboardRow.add(new KeyboardButton(telegramHandler.WEATHER_SETTINGS_BUTTON));
 
         KeyboardRow secondKeyboardRow = new KeyboardRow();
-        secondKeyboardRow.add(new KeyboardButton(NOTIFICATION_SETTINGS_BUTTON));
+        secondKeyboardRow.add(new KeyboardButton(telegramHandler.NOTIFICATION_SETTINGS_BUTTON));
 
         KeyboardRow thirdKeyboardRow = new KeyboardRow();
-        thirdKeyboardRow.add(new KeyboardButton(SETTINGS_BACK_BUTTON));
+        thirdKeyboardRow.add(new KeyboardButton(telegramHandler.SETTINGS_BACK_BUTTON));
 
         keyboard.add(firstKeyboardRow);
         keyboard.add(secondKeyboardRow);
@@ -116,19 +124,19 @@ public class TelegramKeyboards extends AbstractTelegramHandler {
 
         Optional<NotificationServiceSettings> serviceSettings = notificationServiceSettingsRepository.findByUserAndService(user, WebService.YandexWeather);
         if (serviceSettings.isPresent() && serviceSettings.get().getActive()) {
-            firstKeyboardRow.add(new KeyboardButton(DEACTIVATE_WEATHER_BUTTON));
+            firstKeyboardRow.add(new KeyboardButton(telegramHandler.DEACTIVATE_WEATHER_BUTTON));
         } else {
-            firstKeyboardRow.add(new KeyboardButton(ACTIVATE_WEATHER_BUTTON));
+            firstKeyboardRow.add(new KeyboardButton(telegramHandler.ACTIVATE_WEATHER_BUTTON));
         }
-        firstKeyboardRow.add(new KeyboardButton(SHARE_LOCATION_BUTTON).setRequestLocation(true));
+        firstKeyboardRow.add(new KeyboardButton(telegramHandler.SHARE_LOCATION_BUTTON).setRequestLocation(true));
 
         KeyboardRow secondKeyboardRow = new KeyboardRow();
-        secondKeyboardRow.add(new KeyboardButton(ADD_CITY_WEATHER_BUTTON));
-        secondKeyboardRow.add(new KeyboardButton(REMOVE_CITY_WEATHER_BUTTON));
-        secondKeyboardRow.add(new KeyboardButton(LIST_FOLLOWING_CITIES_BUTTON));
+        secondKeyboardRow.add(new KeyboardButton(telegramHandler.ADD_CITY_WEATHER_BUTTON));
+        secondKeyboardRow.add(new KeyboardButton(telegramHandler.REMOVE_CITY_WEATHER_BUTTON));
+        secondKeyboardRow.add(new KeyboardButton(telegramHandler.LIST_FOLLOWING_CITIES_BUTTON));
 
         KeyboardRow thirdKeyboardRow = new KeyboardRow();
-        thirdKeyboardRow.add(new KeyboardButton(SETTINGS_BACK_BUTTON));
+        thirdKeyboardRow.add(new KeyboardButton(telegramHandler.SETTINGS_BACK_BUTTON));
 
         keyboard.add(firstKeyboardRow);
         keyboard.add(secondKeyboardRow);
@@ -144,7 +152,7 @@ public class TelegramKeyboards extends AbstractTelegramHandler {
 
         List<KeyboardRow> keyboard = new ArrayList<>();
         KeyboardRow firstKeyboardRow = new KeyboardRow();
-        firstKeyboardRow.add(new KeyboardButton(CANCEL_BUTTON));
+        firstKeyboardRow.add(new KeyboardButton(telegramHandler.CANCEL_BUTTON));
 
         keyboard.add(firstKeyboardRow);
 
@@ -160,15 +168,15 @@ public class TelegramKeyboards extends AbstractTelegramHandler {
         }
 
         HashMap<Float, String> intervalDescription = new HashMap<Float, String>() {{
-            put(900f, NOTIFICATION_15_MINUTES);
-            put(1800f, NOTIFICATION_30_MINUTES);
-            put(3600f, NOTIFICATION_1_HOUR);
-            put(7200f, NOTIFICATION_2_HOURS);
-            put(10800f, NOTIFICATION_3_HOURS);
-            put(21600f, NOTIFICATION_6_HOURS);
-            put(32400f, NOTIFICATION_9_HOURS);
-            put(43200f, NOTIFICATION_12_HOURS);
-            put(86400f, NOTIFICATION_24_HOURS);
+            put(900f, telegramHandler.NOTIFICATION_15_MINUTES);
+            put(1800f, telegramHandler.NOTIFICATION_30_MINUTES);
+            put(3600f, telegramHandler.NOTIFICATION_1_HOUR);
+            put(7200f, telegramHandler.NOTIFICATION_2_HOURS);
+            put(10800f, telegramHandler.NOTIFICATION_3_HOURS);
+            put(21600f, telegramHandler.NOTIFICATION_6_HOURS);
+            put(32400f, telegramHandler.NOTIFICATION_9_HOURS);
+            put(43200f, telegramHandler.NOTIFICATION_12_HOURS);
+            put(86400f, telegramHandler.NOTIFICATION_24_HOURS);
         }};
 
         String description = (intervalDescription.get(notificationInterval) == null) ? ""
@@ -178,22 +186,22 @@ public class TelegramKeyboards extends AbstractTelegramHandler {
         List<KeyboardRow> keyboard = new ArrayList<>();
 
         KeyboardRow firstKeyboardRow = new KeyboardRow();
-        firstKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, NOTIFICATION_15_MINUTES)));
-        firstKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, NOTIFICATION_30_MINUTES)));
-        firstKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, NOTIFICATION_1_HOUR)));
+        firstKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, telegramHandler.NOTIFICATION_15_MINUTES)));
+        firstKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, telegramHandler.NOTIFICATION_30_MINUTES)));
+        firstKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, telegramHandler.NOTIFICATION_1_HOUR)));
 
         KeyboardRow secondKeyboardRow = new KeyboardRow();
-        secondKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, NOTIFICATION_2_HOURS)));
-        secondKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, NOTIFICATION_3_HOURS)));
-        secondKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, NOTIFICATION_6_HOURS)));
+        secondKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, telegramHandler.NOTIFICATION_2_HOURS)));
+        secondKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, telegramHandler.NOTIFICATION_3_HOURS)));
+        secondKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, telegramHandler.NOTIFICATION_6_HOURS)));
 
         KeyboardRow thirdKeyboardRow = new KeyboardRow();
-        thirdKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, NOTIFICATION_9_HOURS)));
-        thirdKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, NOTIFICATION_12_HOURS)));
-        thirdKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, NOTIFICATION_24_HOURS)));
+        thirdKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, telegramHandler.NOTIFICATION_9_HOURS)));
+        thirdKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, telegramHandler.NOTIFICATION_12_HOURS)));
+        thirdKeyboardRow.add(new KeyboardButton(getCorrectedDescription(description, telegramHandler.NOTIFICATION_24_HOURS)));
 
         KeyboardRow fourthKeyboardRow = new KeyboardRow();
-        fourthKeyboardRow.add(new KeyboardButton(SETTINGS_BACK_BUTTON));
+        fourthKeyboardRow.add(new KeyboardButton(telegramHandler.SETTINGS_BACK_BUTTON));
 
         keyboard.add(firstKeyboardRow);
         keyboard.add(secondKeyboardRow);
