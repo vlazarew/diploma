@@ -15,12 +15,18 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(indexes = {@Index(columnList = "source_name", name = "news_source_source_name_index"),
+        @Index(columnList = "name", name = "news_source_name_index")})
 public class NewsSource {
 
     @Id
-    @GeneratedValue(strategy =  GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @Column(name = "source_name")
+    String sourceName;
+
+    @Column(name = "name")
     String name;
 
     String link;

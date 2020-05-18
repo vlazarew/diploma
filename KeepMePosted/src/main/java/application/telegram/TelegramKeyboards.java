@@ -101,14 +101,18 @@ public class TelegramKeyboards {
         firstKeyboardRow.add(new KeyboardButton(telegramHandler.WEATHER_SETTINGS_BUTTON));
 
         KeyboardRow secondKeyboardRow = new KeyboardRow();
-        secondKeyboardRow.add(new KeyboardButton(telegramHandler.NOTIFICATION_SETTINGS_BUTTON));
+        secondKeyboardRow.add(new KeyboardButton(telegramHandler.NEWS_SETTINGS_BUTTON));
 
         KeyboardRow thirdKeyboardRow = new KeyboardRow();
-        thirdKeyboardRow.add(new KeyboardButton(telegramHandler.SETTINGS_BACK_BUTTON));
+        thirdKeyboardRow.add(new KeyboardButton(telegramHandler.NOTIFICATION_SETTINGS_BUTTON));
+
+        KeyboardRow fourthKeyboardRow = new KeyboardRow();
+        fourthKeyboardRow.add(new KeyboardButton(telegramHandler.SETTINGS_BACK_BUTTON));
 
         keyboard.add(firstKeyboardRow);
         keyboard.add(secondKeyboardRow);
         keyboard.add(thirdKeyboardRow);
+        keyboard.add(fourthKeyboardRow);
 
         replyKeyboardMarkup.setKeyboard(keyboard);
 
@@ -147,7 +151,39 @@ public class TelegramKeyboards {
         return replyKeyboardMarkup;
     }
 
-    public ReplyKeyboardMarkup getAddDeleteCityKeyboardMarkup() {
+    public ReplyKeyboardMarkup getNewsSettingsKeyboard(TelegramUser user,
+                                                       NotificationServiceSettingsRepository notificationServiceSettingsRepository) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = getTunedReplyKeyboardMarkup();
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        KeyboardRow firstKeyboardRow = new KeyboardRow();
+
+        Optional<NotificationServiceSettings> serviceSettings = notificationServiceSettingsRepository.findByUserAndService(user, WebService.NewsService);
+        if (serviceSettings.isPresent() && serviceSettings.get().getActive()) {
+            firstKeyboardRow.add(new KeyboardButton(telegramHandler.DEACTIVATE_NEWS_BUTTON));
+        } else {
+            firstKeyboardRow.add(new KeyboardButton(telegramHandler.ACTIVATE_NEWS_BUTTON));
+        }
+
+        firstKeyboardRow.add(new KeyboardButton(telegramHandler.LIST_FOLLOWING_CATEGORIES_BUTTON));
+
+        KeyboardRow secondKeyboardRow = new KeyboardRow();
+        secondKeyboardRow.add(new KeyboardButton(telegramHandler.ADD_CATEGORY_NEWS_BUTTON));
+        secondKeyboardRow.add(new KeyboardButton(telegramHandler.REMOVE_CATEGORY_NEWS_BUTTON));
+
+        KeyboardRow thirdKeyboardRow = new KeyboardRow();
+        thirdKeyboardRow.add(new KeyboardButton(telegramHandler.SETTINGS_BACK_BUTTON));
+
+        keyboard.add(firstKeyboardRow);
+        keyboard.add(secondKeyboardRow);
+        keyboard.add(thirdKeyboardRow);
+
+        replyKeyboardMarkup.setKeyboard(keyboard);
+
+        return replyKeyboardMarkup;
+    }
+
+    public ReplyKeyboardMarkup getAddDeleteSomethingKeyboardMarkup() {
         ReplyKeyboardMarkup replyKeyboardMarkup = getTunedReplyKeyboardMarkup();
 
         List<KeyboardRow> keyboard = new ArrayList<>();

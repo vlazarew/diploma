@@ -1,5 +1,6 @@
 package application.utils.handler;
 
+import application.data.model.service.WebService;
 import application.data.model.telegram.TelegramUpdate;
 import application.data.model.telegram.TelegramUser;
 import application.data.model.telegram.UserStatus;
@@ -18,6 +19,13 @@ public interface TelegramMessageHandler {
 
     void sendWeatherSettingsMessage(Long chatId, TelegramUser user, String text, UserStatus status);
 
+    void sendNewsSettingsMessage(Long chatId, TelegramUser user, String text, UserStatus status);
+
     void sendTextMessageForecastAboutFollowingCities(Long chatId, TelegramUser telegramUser, boolean isUserLocation);
 
+    void saveServiceSettings(TelegramUser telegramUser, boolean isActive, WebService webService);
+
+    void sendTextMessageAddDeleteSomething(Long chatId, String text, UserStatus status);
+
+    void sendTextMessageLastNews(Long chatId, TelegramUser telegramUser, boolean isFollowingNews);
 }

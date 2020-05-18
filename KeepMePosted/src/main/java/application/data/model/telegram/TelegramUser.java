@@ -4,10 +4,7 @@ import application.data.model.YandexWeather.YandexWeatherTZInfo;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -16,7 +13,6 @@ import javax.persistence.Table;
 @Table(name = "users")
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
 public class TelegramUser extends AbstractTelegramEntity {
 
     @Id
@@ -37,7 +33,4 @@ public class TelegramUser extends AbstractTelegramEntity {
 
     @OneToOne
     TelegramLocation location;
-
-//    @OneToOne
-//    TelegramChat chat;
 }

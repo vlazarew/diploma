@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface NewsSourceRepository extends CrudRepository<NewsSource, Long> {
 
-    Optional<NewsSource> findByName(String name);
+    Optional<NewsSource> findBySourceName(String sourceName);
 }

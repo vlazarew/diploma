@@ -1,9 +1,6 @@
 package application.data.model.news;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
@@ -14,14 +11,18 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(indexes = {@Index(columnList = "name", name = "news_category_name_index")})
+@Getter
+@Setter
 public class NewsCategory {
 
     @Id
-    @GeneratedValue(strategy =  GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
     LocalDateTime creationDate;
 
+    @Column(name = "name")
     String name;
 
     @PrePersist

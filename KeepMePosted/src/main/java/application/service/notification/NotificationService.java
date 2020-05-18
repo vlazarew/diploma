@@ -1,6 +1,7 @@
 package application.service.notification;
 
 import application.data.model.service.NotificationServiceSettings;
+import application.data.model.service.WebService;
 import application.data.model.telegram.TelegramUser;
 import application.data.repository.service.NotificationServiceSettingsRepository;
 import application.utils.handler.TelegramHandler;
@@ -51,7 +52,13 @@ public class NotificationService {
             if (differenceBetweenNotifications >= serviceSettings.getNotificationInterval()) {
                 TelegramUser user = serviceSettings.getUser();
                 Long chatId = Long.valueOf(user.getId());
-                telegramHandler.sendTextMessageForecastAboutFollowingCities(chatId, user, false);
+                WebService service = serviceSettings.getService();
+
+                if (service == WebService.YandexWeather) {
+                    telegramHandler.sendTextMessageForecastAboutFollowingCities(chatId, user, false);
+                } else if (service == WebService.NewsService) {
+                    telegramHandler.sendTextMessageLastNews(chatId, user, true);
+                }
 
                 serviceSettings.setLastNotification(currentDate);
                 notificationServiceSettingsRepository.save(serviceSettings);

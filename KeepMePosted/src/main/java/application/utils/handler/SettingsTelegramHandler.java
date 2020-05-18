@@ -44,6 +44,8 @@ public class SettingsTelegramHandler extends TelegramHandler {
             sendNotificationSettingsKeyboard(chatId, user, "Настройки периода оповещений", UserStatus.NotificationSettings);
         } else if (userAnswer.equals(WEATHER_SETTINGS_BUTTON)) {
             sendWeatherSettingsMessage(chatId, user, "Настройки рассылки погоды", UserStatus.WeatherSettings);
+        } else if (userAnswer.equals(NEWS_SETTINGS_BUTTON)) {
+            sendNewsSettingsMessage(chatId, user, "Настройки рассылки новостей", UserStatus.NewsSettings);
         } else if (userAnswer.equals(SETTINGS_BACK_BUTTON)) {
             if (user.getStatus() == UserStatus.Settings) {
                 sendMessageToUserByCustomMainKeyboard(chatId, user, "Главная страница", UserStatus.MainPage);

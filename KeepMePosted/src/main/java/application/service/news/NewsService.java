@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -101,7 +102,8 @@ public class NewsService {
         boolean categoryFromHashMap = (rssLink.equals(rbkRSSLink) || rssLink.equals(izvestiyaRSSLink));
 
         String sourceName = feed.getDescription();
-        NewsSource newsSource = findCreateNewsSource(feed, sourceName);
+        NewsSource newsSource = findCreateNewsSource(feed, sourceName, rssLink);
+        final LocalDateTime[] lastUpdate = {null};
 
         List<SyndEntryImpl> entries = feed.getEntries();
         entries.forEach(entry -> {
@@ -110,8 +112,14 @@ public class NewsService {
 
             if (newsItem == null) {
                 createNewsItem(newsSource, entry, uri, categoryFromHashMap);
+                lastUpdate[0] = LocalDateTime.now();
             }
         });
+
+        if (lastUpdate[0] != null) {
+            newsSource.setLastUpdate(lastUpdate[0]);
+            newsSourceRepository.save(newsSource);
+        }
     }
 
     private SyndFeed getSyndFeed(String rssLink) throws IOException, FeedException {
@@ -137,13 +145,13 @@ public class NewsService {
         if (categoryFromHashMap) {
             setNewsCategoriesFromHashMap(link, newsItem);
         } else {
-            setNewsCategories(entry);
+            setNewsCategories(entry, newsItem);
         }
 
         newsItemRepository.save(newsItem);
     }
 
-    private void setNewsCategories(SyndEntryImpl entry) {
+    private void setNewsCategories(SyndEntryImpl entry, NewsItem newsItem) {
         ArrayList<NewsCategory> newsCategories = new ArrayList<>();
 
         List<SyndCategoryImpl> categoryList = entry.getCategories();
@@ -153,6 +161,12 @@ public class NewsService {
 
             newsCategories.add(newsCategory);
         });
+
+        if (newsCategories.isEmpty()) {
+            newsCategories.add(findCreateCategory("Без категории"));
+        }
+
+        newsItem.setCategoryList(newsCategories);
     }
 
     private void setNewsCategoriesFromHashMap(String link, NewsItem newsItem) {
@@ -206,10 +220,20 @@ public class NewsService {
         }
     }
 
-    private NewsSource findCreateNewsSource(SyndFeed feed, String sourceName) {
-        return newsSourceRepository.findByName(sourceName).orElseGet(() -> {
+    private NewsSource findCreateNewsSource(SyndFeed feed, String sourceName, String rssLink) {
+        HashMap<String, String> sourceNames = new HashMap<String, String>() {{
+            put(rbkRSSLink, "РБК");
+            put(riaTassRSSLink, "ТАСС");
+            put(vestiRuRSSLink, "Вести.Ru");
+            put(vedomostiRSSLink, "Газета «Ведомости»");
+            put(izvestiyaRSSLink, "Газета «Известия»");
+            put(lentaRuRSSLink, "Lenta.ru");
+        }};
+
+        return newsSourceRepository.findBySourceName(sourceName).orElseGet(() -> {
             NewsSource newNewsSource = new NewsSource();
-            newNewsSource.setName(sourceName);
+            newNewsSource.setSourceName(sourceName);
+            newNewsSource.setName(sourceNames.get(rssLink));
             newNewsSource.setLastUpdate(LocalDateTime.now());
             newNewsSource.setLink(feed.getLink());
 
