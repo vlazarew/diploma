@@ -43,6 +43,12 @@ public class NotificationServiceSettings {
     @OneToMany
     List<WeatherSettings> weatherSettings;
 
+    @OneToMany
+    List<NewsSettings> newsSettings;
+
+    @OneToMany
+    List<TwitterSettings> twitterSettings;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     TelegramUser user;

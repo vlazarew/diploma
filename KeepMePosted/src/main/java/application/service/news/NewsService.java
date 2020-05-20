@@ -198,7 +198,7 @@ public class NewsService {
 
     private void setPhotoUrl(SyndEntryImpl entry, NewsItem newsItem) {
         List<SyndEnclosureImpl> enclosureList = entry.getEnclosures();
-        if (enclosureList.size() > 0) {
+        if (!enclosureList.isEmpty()) {
             newsItem.setPhotoUrl(enclosureList.get(0).getUrl());
         }
     }
@@ -212,7 +212,7 @@ public class NewsService {
 
     private void setAuthorPublicationDate(SyndEntryImpl entry, NewsItem newsItem) {
         List<DCModuleImpl> dcModuleList = entry.getModules();
-        if (dcModuleList.size() > 0) {
+        if (!dcModuleList.isEmpty()) {
             DCModuleImpl firstDCModule = dcModuleList.get(0);
 
             newsItem.setAuthor(firstDCModule.getCreator());

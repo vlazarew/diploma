@@ -46,6 +46,8 @@ public class SettingsTelegramHandler extends TelegramHandler {
             sendWeatherSettingsMessage(chatId, user, "Настройки рассылки погоды", UserStatus.WeatherSettings);
         } else if (userAnswer.equals(NEWS_SETTINGS_BUTTON)) {
             sendNewsSettingsMessage(chatId, user, "Настройки рассылки новостей", UserStatus.NewsSettings);
+        } else if (userAnswer.equals(TWITTER_SETTINGS_BUTTON)) {
+            sendTwitterSettingsMessage(chatId, user, "Настройки Twitter", UserStatus.TwitterSettings);
         } else if (userAnswer.equals(SETTINGS_BACK_BUTTON)) {
             if (user.getStatus() == UserStatus.Settings) {
                 sendMessageToUserByCustomMainKeyboard(chatId, user, "Главная страница", UserStatus.MainPage);
@@ -56,7 +58,6 @@ public class SettingsTelegramHandler extends TelegramHandler {
             updateUserNotificationInterval(user, userAnswer);
             sendSettingsKeyboard(chatId, "Настройки бота", UserStatus.Settings);
         }
-
     }
 
     @Transactional

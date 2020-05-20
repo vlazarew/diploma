@@ -5,18 +5,15 @@ import application.data.model.YandexWeather.YandexWeatherFact;
 import application.data.model.YandexWeather.YandexWeatherTZInfo;
 import application.data.model.news.NewsCategory;
 import application.data.model.news.NewsItem;
-import application.data.model.service.NewsSettings;
-import application.data.model.service.NotificationServiceSettings;
-import application.data.model.service.WeatherSettings;
-import application.data.model.service.WebService;
+import application.data.model.service.*;
 import application.data.model.telegram.*;
+import application.data.model.twitter.Tweet;
 import application.data.repository.news.NewsItemRepository;
-import application.data.repository.service.NewsSettingsRepository;
-import application.data.repository.service.NotificationServiceSettingsRepository;
-import application.data.repository.service.WeatherSettingsRepository;
+import application.data.repository.service.*;
 import application.data.repository.telegram.TelegramChatRepository;
 import application.data.repository.telegram.TelegramLocationRepository;
 import application.data.repository.telegram.TelegramUserRepository;
+import application.data.repository.twitter.TweetRepository;
 import application.service.weather.YandexWeatherService;
 import application.telegram.TelegramBot;
 import application.telegram.TelegramKeyboards;
@@ -30,14 +27,14 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -66,6 +63,14 @@ public class TelegramHandler implements TelegramMessageHandler {
     public NewsSettingsRepository newsSettingsRepository;
     @Autowired
     public NewsItemRepository newsItemRepository;
+    @Autowired
+    public TwitterSettingsRepository twitterSettingsRepository;
+    @Autowired
+    public FollowingHashtagsRepository followingHashtagsRepository;
+    @Autowired
+    public FollowingPeoplesRepository followingPeoplesRepository;
+    @Autowired
+    public TweetRepository tweetRepository;
 
     //region Кнопки в приложении
     @Value("${telegram.START_COMMAND}")
@@ -140,6 +145,7 @@ public class TelegramHandler implements TelegramMessageHandler {
     public String NOTIFICATION_24_HOURS;
     //endregion
 
+    //region Интеграция с новостями
     @Value("${telegram.SHOW_FOLLOWING_NEWS}")
     public String SHOW_FOLLOWING_NEWS;
     @Value("${telegram.SHOW_ALL_NEWS}")
@@ -156,6 +162,32 @@ public class TelegramHandler implements TelegramMessageHandler {
     public String ADD_CATEGORY_NEWS_BUTTON;
     @Value("${telegram.REMOVE_CATEGORY_NEWS_BUTTON}")
     public String REMOVE_CATEGORY_NEWS_BUTTON;
+    //endregion
+
+    //region Интеграция с Twitter
+    @Value("${telegram.TWITTER_SETTINGS_BUTTON}")
+    public String TWITTER_SETTINGS_BUTTON;
+    @Value("${telegram.ACTIVATE_TWITTER_BUTTON}")
+    public String ACTIVATE_TWITTER_BUTTON;
+    @Value("${telegram.DEACTIVATE_TWITTER_BUTTON}")
+    public String DEACTIVATE_TWITTER_BUTTON;
+    @Value("${telegram.LIST_FOLLOWING_PEOPLES_BUTTON}")
+    public String LIST_FOLLOWING_PEOPLES_BUTTON;
+    @Value("${telegram.ADD_PEOPLES_BUTTON}")
+    public String ADD_PEOPLES_BUTTON;
+    @Value("${telegram.REMOVE_PEOPLES_BUTTON}")
+    public String REMOVE_PEOPLES_BUTTON;
+    @Value("${telegram.LIST_FOLLOWING_HASHTAGS_BUTTON}")
+    public String LIST_FOLLOWING_HASHTAGS_BUTTON;
+    @Value("${telegram.ADD_HASHTAG_BUTTON}")
+    public String ADD_HASHTAG_BUTTON;
+    @Value("${telegram.REMOVE_HASHTAG_BUTTON}")
+    public String REMOVE_HASHTAG_BUTTON;
+    @Value("${telegram.SHOW_FOLLOWING_TWEETS}")
+    public String SHOW_FOLLOWING_TWEETS;
+    @Value("${telegram.SHOW_MOST_POPULAR_TWEETS}")
+    public String SHOW_MOST_POPULAR_TWEETS;
+    //endregion
     //endregion
 
     @Override
@@ -228,7 +260,7 @@ public class TelegramHandler implements TelegramMessageHandler {
         NotificationServiceSettings notificationServiceSettings = notificationServiceSettingsRepository.findByUserAndService(user, webService)
                 .orElseGet(() -> {
                     NotificationServiceSettings newNotificationServiceSettings = new NotificationServiceSettings();
-                    newNotificationServiceSettings.setService(WebService.YandexWeather);
+                    newNotificationServiceSettings.setService(webService);
                     newNotificationServiceSettings.setUser(user);
                     return newNotificationServiceSettings;
                 });
@@ -257,6 +289,21 @@ public class TelegramHandler implements TelegramMessageHandler {
     @Override
     public void sendTextMessageLastNews(Long chatId, TelegramUser telegramUser, boolean isFollowingNews) {
         List<String> textList = getNewsInfo(telegramUser, isFollowingNews);
+        textList.forEach(text -> {
+            sendTextMessageReplyKeyboardMarkup(chatId, text, null, null);
+        });
+    }
+
+    @Override
+    public void sendTwitterSettingsMessage(Long chatId, TelegramUser user, String text, UserStatus status) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getTwitterSettingsKeyboard(user,
+                notificationServiceSettingsRepository);
+        sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, status);
+    }
+
+    @Override
+    public void sendTextMessageLastTweets(Long chatId, TelegramUser telegramUser, boolean isFollowingTweets) {
+        List<String> textList = getTweetsInfo(telegramUser, isFollowingTweets);
         textList.forEach(text -> {
             sendTextMessageReplyKeyboardMarkup(chatId, text, null, null);
         });
@@ -383,6 +430,60 @@ public class TelegramHandler implements TelegramMessageHandler {
                 newsItem.getTitle() +
                 "\r\n\r\n" +
                 newsItem.getLink();
+    }
+
+    private List<String> getTweetsInfo(TelegramUser user, boolean isFollowingTweets) {
+        List<String> resultList = new ArrayList<>();
+
+        if (isFollowingTweets) {
+            TwitterSettings twitterSettings = twitterSettingsRepository.findByUserId(user.getId());
+            if (twitterSettings == null) {
+                resultList.add("Не заполнены настройки Twitter");
+            } else {
+                Set<FollowingHashtags> followingHashtags = twitterSettings.getFollowingHashtags();
+                List<String> hashtags = new ArrayList<>();
+                followingHashtags.forEach(followingHashtag -> {
+                    hashtags.add("#" + followingHashtag.getHashtag());
+                });
+
+                Set<FollowingPeoples> followingPeoples = twitterSettings.getFollowingPeoples();
+                List<String> nicknames = new ArrayList<>();
+                followingPeoples.forEach(followingPeople -> {
+                    nicknames.add(followingPeople.getNickname());
+                });
+
+                List<Tweet> tweets = tweetRepository.findTop10ByNicknameInOrHashtagInOrderByCreatedAtDesc(nicknames,
+                        hashtags);
+
+                makeTwitterMessage(resultList, tweets);
+            }
+
+        } else {
+            LocalDateTime ldt = LocalDateTime.now().minusDays(1);
+            Date out = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+
+            List<Tweet> tweets = tweetRepository.findTop10ByCreatedAtAfterOrderByRetweetCountDescFavoriteCountDescCreatedAtDesc(out);
+            makeTwitterMessage(resultList, tweets);
+        }
+
+        return resultList;
+    }
+
+    private void makeTwitterMessage(List<String> resultList, List<Tweet> tweets) {
+        tweets.forEach(tweet -> {
+            SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+            String formattedDate = format.format(tweet.getCreatedAt());
+            String author = "@" + tweet.getFromUser();
+            String hashtag = tweet.getHashtag();
+
+            String result = "*" + formattedDate + ". " + author + "*" + "\r\n\r\n"
+                    + tweet.getText() + "\r\n\r\n"
+                    + "Ретвитов: " + tweet.getRetweetCount().toString() + ". "
+                    + "Отметок «Нравится»: " + tweet.getFavoriteCount().toString() + "\r\n"
+                    + ((hashtag == null) ? "" : hashtag);
+
+            resultList.add(result);
+        });
     }
 
     @Transactional

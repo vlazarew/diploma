@@ -6,7 +6,6 @@ import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @FieldDefaults(level = AccessLevel.PRIVATE)

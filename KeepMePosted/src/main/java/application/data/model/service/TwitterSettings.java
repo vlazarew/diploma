@@ -1,11 +1,13 @@
 package application.data.model.service;
 
-import application.data.model.news.NewsCategory;
 import application.data.model.telegram.TelegramUser;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -13,22 +15,24 @@ import javax.persistence.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(indexes = {@Index(columnList = "user_id", name = "news_settings_user_id_index")})
-public class NewsSettings {
+@Table(indexes = {@Index(columnList = "user_id", name = "twitter_settings_user_id_index")})
+public class TwitterSettings {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    String keyword;
+    @OneToMany(fetch = FetchType.EAGER)
+    Set<FollowingPeoples> followingPeoples;
 
-    @OneToOne
-    NewsCategory newsCategory;
+    @OneToMany(fetch = FetchType.EAGER)
+    Set<FollowingHashtags> followingHashtags;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     TelegramUser user;
 
-    @ManyToOne
+    @OneToOne
     NotificationServiceSettings notificationServiceSettings;
+
 }

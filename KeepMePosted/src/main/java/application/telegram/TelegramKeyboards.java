@@ -36,6 +36,7 @@ public class TelegramKeyboards {
         KeyboardRow keyboardFirstRow = new KeyboardRow();
         KeyboardRow keyboardSecondRow = new KeyboardRow();
         KeyboardRow keyboardThirdRow = new KeyboardRow();
+        KeyboardRow keyboardFourthRow = new KeyboardRow();
 
         if (user.getRegistered() != null && user.getRegistered()) {
             keyboardFirstRow.add(new KeyboardButton(telegramHandler.WEATHER_IN_CURRENT_LOCATION_BUTTON).setRequestLocation(true));
@@ -44,7 +45,10 @@ public class TelegramKeyboards {
             keyboardSecondRow.add(new KeyboardButton(telegramHandler.SHOW_ALL_NEWS));
             keyboardSecondRow.add(new KeyboardButton(telegramHandler.SHOW_FOLLOWING_NEWS));
 
-            keyboardThirdRow.add(new KeyboardButton(telegramHandler.SETTINGS_BUTTON));
+            keyboardThirdRow.add(new KeyboardButton((telegramHandler.SHOW_MOST_POPULAR_TWEETS)));
+            keyboardThirdRow.add(new KeyboardButton((telegramHandler.SHOW_FOLLOWING_TWEETS)));
+
+            keyboardFourthRow.add(new KeyboardButton(telegramHandler.SETTINGS_BUTTON));
         } else {
             keyboardFirstRow.add(new KeyboardButton(telegramHandler.HELLO_BUTTON));
             keyboardFirstRow.add(new KeyboardButton(telegramHandler.REGISTER_BUTTON));
@@ -55,6 +59,7 @@ public class TelegramKeyboards {
         keyboard.add(keyboardFirstRow);
         keyboard.add(keyboardSecondRow);
         keyboard.add(keyboardThirdRow);
+        keyboard.add(keyboardFourthRow);
 
         replyKeyboardMarkup.setKeyboard(keyboard);
         return replyKeyboardMarkup;
@@ -104,15 +109,19 @@ public class TelegramKeyboards {
         secondKeyboardRow.add(new KeyboardButton(telegramHandler.NEWS_SETTINGS_BUTTON));
 
         KeyboardRow thirdKeyboardRow = new KeyboardRow();
-        thirdKeyboardRow.add(new KeyboardButton(telegramHandler.NOTIFICATION_SETTINGS_BUTTON));
+        thirdKeyboardRow.add(new KeyboardButton(telegramHandler.TWITTER_SETTINGS_BUTTON));
 
         KeyboardRow fourthKeyboardRow = new KeyboardRow();
-        fourthKeyboardRow.add(new KeyboardButton(telegramHandler.SETTINGS_BACK_BUTTON));
+        fourthKeyboardRow.add(new KeyboardButton(telegramHandler.NOTIFICATION_SETTINGS_BUTTON));
+
+        KeyboardRow fifthKeyboadRow = new KeyboardRow();
+        fifthKeyboadRow.add(new KeyboardButton(telegramHandler.SETTINGS_BACK_BUTTON));
 
         keyboard.add(firstKeyboardRow);
         keyboard.add(secondKeyboardRow);
         keyboard.add(thirdKeyboardRow);
         keyboard.add(fourthKeyboardRow);
+        keyboard.add(fifthKeyboadRow);
 
         replyKeyboardMarkup.setKeyboard(keyboard);
 
@@ -183,6 +192,43 @@ public class TelegramKeyboards {
         return replyKeyboardMarkup;
     }
 
+    public ReplyKeyboardMarkup getTwitterSettingsKeyboard(TelegramUser user,
+                                                       NotificationServiceSettingsRepository notificationServiceSettingsRepository) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = getTunedReplyKeyboardMarkup();
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        KeyboardRow firstKeyboardRow = new KeyboardRow();
+
+        Optional<NotificationServiceSettings> serviceSettings = notificationServiceSettingsRepository.findByUserAndService(user, WebService.TwitterService);
+        if (serviceSettings.isPresent() && serviceSettings.get().getActive()) {
+            firstKeyboardRow.add(new KeyboardButton(telegramHandler.DEACTIVATE_TWITTER_BUTTON));
+        } else {
+            firstKeyboardRow.add(new KeyboardButton(telegramHandler.ACTIVATE_TWITTER_BUTTON));
+        }
+
+        KeyboardRow secondKeyboardRow = new KeyboardRow();
+        secondKeyboardRow.add(new KeyboardButton(telegramHandler.ADD_PEOPLES_BUTTON));
+        secondKeyboardRow.add(new KeyboardButton(telegramHandler.REMOVE_PEOPLES_BUTTON));
+        secondKeyboardRow.add(new KeyboardButton(telegramHandler.LIST_FOLLOWING_PEOPLES_BUTTON));
+
+        KeyboardRow thirdKeyboardRow = new KeyboardRow();
+        thirdKeyboardRow.add(new KeyboardButton(telegramHandler.ADD_HASHTAG_BUTTON));
+        thirdKeyboardRow.add(new KeyboardButton(telegramHandler.REMOVE_HASHTAG_BUTTON));
+        thirdKeyboardRow.add(new KeyboardButton(telegramHandler.LIST_FOLLOWING_HASHTAGS_BUTTON));
+
+        KeyboardRow fouthKeyboardRow = new KeyboardRow();
+        fouthKeyboardRow.add(new KeyboardButton(telegramHandler.SETTINGS_BACK_BUTTON));
+
+        keyboard.add(firstKeyboardRow);
+        keyboard.add(secondKeyboardRow);
+        keyboard.add(thirdKeyboardRow);
+        keyboard.add(fouthKeyboardRow);
+
+        replyKeyboardMarkup.setKeyboard(keyboard);
+
+        return replyKeyboardMarkup;
+    }
+
     public ReplyKeyboardMarkup getAddDeleteSomethingKeyboardMarkup() {
         ReplyKeyboardMarkup replyKeyboardMarkup = getTunedReplyKeyboardMarkup();
 
@@ -199,7 +245,7 @@ public class TelegramKeyboards {
                                                                      NotificationServiceSettingsRepository notificationServiceSettingsRepository) {
         float notificationInterval = 0;
         List<NotificationServiceSettings> notificationServiceSettingsList = notificationServiceSettingsRepository.findByUser(user);
-        if (notificationServiceSettingsList.size() > 0) {
+        if (!notificationServiceSettingsList.isEmpty()) {
             notificationInterval = notificationServiceSettingsList.get(0).getNotificationInterval();
         }
 

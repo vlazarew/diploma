@@ -166,7 +166,7 @@ public class WeatherSettingHandler extends TelegramHandler {
 
     private String listWeatherSettingToUser(TelegramUser user, WebService webService) {
         List<WeatherSettings> weatherSettings = weatherSettingsRepository.findByUserId(user.getId());
-        String headerMessage = weatherSettings.size() > 0 ? ("Список отслеживаемых городов: " + "\r\n\r\n")
+        String headerMessage = !weatherSettings.isEmpty() ? ("Список отслеживаемых городов: " + "\r\n\r\n")
                 : "Список отслеживаемых городов пуст";
         StringBuilder stringBuilder = new StringBuilder(headerMessage);
         AtomicInteger count = new AtomicInteger();

@@ -13,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ public class NewsTelegramHandler extends TelegramHandler {
     final WebService webService = WebService.NewsService;
 
     @Override
+    @Async
     public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
         if (!hasText) {
             return;
@@ -94,7 +96,7 @@ public class NewsTelegramHandler extends TelegramHandler {
 
     private String listNewsSettingToUser(TelegramUser user, WebService webService) {
         List<NewsSettings> newsSettingsList = newsSettingsRepository.findByUserId(user.getId());
-        String headerMessage = newsSettingsList.size() > 0 ? ("Список отслеживаемых тем: " + "\r\n\r\n")
+        String headerMessage = !newsSettingsList.isEmpty() ? ("Список отслеживаемых тем: " + "\r\n\r\n")
                 : "Список отслеживаемых тем пуст";
         StringBuilder stringBuilder = new StringBuilder(headerMessage);
         AtomicInteger count = new AtomicInteger();

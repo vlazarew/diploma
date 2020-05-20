@@ -58,6 +58,8 @@ public class NotificationService {
                     telegramHandler.sendTextMessageForecastAboutFollowingCities(chatId, user, false);
                 } else if (service == WebService.NewsService) {
                     telegramHandler.sendTextMessageLastNews(chatId, user, true);
+                } else if (service == WebService.TwitterService) {
+                    telegramHandler.sendTextMessageLastTweets(chatId, user, true);
                 }
 
                 serviceSettings.setLastNotification(currentDate);

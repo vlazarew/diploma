@@ -28,4 +28,8 @@ public interface TelegramMessageHandler {
     void sendTextMessageAddDeleteSomething(Long chatId, String text, UserStatus status);
 
     void sendTextMessageLastNews(Long chatId, TelegramUser telegramUser, boolean isFollowingNews);
+
+    void sendTwitterSettingsMessage(Long chatId,TelegramUser user, String text, UserStatus status);
+
+    void sendTextMessageLastTweets(Long chatId, TelegramUser telegramUser, boolean isFollowingTweets);
 }
