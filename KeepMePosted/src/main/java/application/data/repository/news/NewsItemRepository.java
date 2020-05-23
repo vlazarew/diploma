@@ -2,8 +2,11 @@ package application.data.repository.news;
 
 import application.data.model.news.NewsCategory;
 import application.data.model.news.NewsItem;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Date;
 import java.util.List;
 
 public interface NewsItemRepository extends JpaRepository<NewsItem, Long> {
@@ -22,4 +25,8 @@ public interface NewsItemRepository extends JpaRepository<NewsItem, Long> {
     List<NewsItem> findTop10ByCategoryListInOrderByPublicationDateDescCreationDateDesc(List<NewsCategory> categoryList);
 
     List<NewsItem> findTop10ByIdIsNotNullOrderByPublicationDateDescCreationDateDesc();
+
+    Page<NewsItem> findByPublicationDateBetweenOrderByCountOfViewersDescPublicationDateDescCreationDateDesc(Date publicationDateStart,
+                                                                                                            Date publicationDateEnd,
+                                                                                                            Pageable pageable);
 }
