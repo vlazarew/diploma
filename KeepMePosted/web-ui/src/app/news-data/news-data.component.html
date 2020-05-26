@@ -1,12 +1,12 @@
 <div class="newsTable">
 
-  <!--  <p>{{timePeriodService.typeOfTimePeriod|async}}</p>-->
+  <p>{{timePeriodService.typeOfTimePeriod|async}}</p>
 
   <table mat-table [dataSource]="allNews" class="mat-elevation-z8">
 
     <ng-container matColumnDef="position">
       <th mat-header-cell *matHeaderCellDef> Позиция</th>
-      <td mat-cell *matCellDef="let element; let i=index"> {{i + 1}} </td>
+      <td mat-cell *matCellDef="let element"> {{element.position}} </td>
     </ng-container>
 
     <ng-container matColumnDef="delta">
@@ -26,7 +26,7 @@
 
     <ng-container matColumnDef="countOfViews">
       <th mat-header-cell *matHeaderCellDef> Количество просмотров</th>
-      <td mat-cell *matCellDef="let element"> {{element.countOfViewers}} </td>
+      <td mat-cell *matCellDef="let element"> {{element.countOfViews}} </td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

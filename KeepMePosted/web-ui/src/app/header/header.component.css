@@ -18,8 +18,17 @@ img {
   height: 70px;
 }
 
+.topBarItems {
+  margin-top: 17.5px;
+  width: 700px;
+  height: 70px;
+  margin-left: 50px;
+}
 
-.profile{
-  margin-right: 0;
-  margin-left: auto;
+.topBarItems:first-child {
+  border-left: 0;
+}
+
+.topBarItems a{
+  margin-right: 5px;
 }

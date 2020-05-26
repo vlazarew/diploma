@@ -18,7 +18,6 @@ import {MatIconModule} from "@angular/material/icon";
 import {MatPaginatorModule} from "@angular/material/paginator";
 import {HttpClientModule} from "@angular/common/http";
 import {NewsDataService} from "./news-data/news-data.service";
-import { TimeSwitcherComponent } from './time-switcher/time-switcher.component';
 
 @NgModule({
   declarations: [
@@ -26,8 +25,7 @@ import { TimeSwitcherComponent } from './time-switcher/time-switcher.component';
     HeaderComponent,
     HomeComponent,
     FooterComponent,
-    NewsDataComponent,
-    TimeSwitcherComponent
+    NewsDataComponent
   ],
   imports: [
     BrowserModule,

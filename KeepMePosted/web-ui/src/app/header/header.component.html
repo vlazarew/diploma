@@ -2,6 +2,17 @@
   <span><a routerLink="/home" class="logoName">Keep me posted App</a></span>
   <span><a routerLink="/home"><img src="assets/icon.jpg" alt="Логотип"/></a></span>
 
+  <div class="topBar">
+    <div class="topBarItems">
+      <a mat-stroked-button (click)="OnClick10min()">10 минут</a>
+      <a mat-stroked-button (click)="OnClick1h()">Час</a>
+      <a mat-stroked-button (click)="OnClick1d()">День</a>
+      <a mat-stroked-button (click)="OnClick1w()">Неделя</a>
+      <a mat-stroked-button (click)="OnClick1m()">Месяц</a>
+      <a mat-stroked-button (click)="OnClick1y()">Год</a>
+    </div>
+  </div>
+
   <div class="profile">
     <div *ngIf="registered">
       <button mat-button [matMenuTriggerFor]="userInfo">{{user.firstname}} {{user.lastname}}</button>
