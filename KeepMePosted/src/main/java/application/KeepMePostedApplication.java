@@ -1,5 +1,6 @@
 package application;
 
+import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.config.Configuration;
 import org.modelmapper.convention.MatchingStrategies;
@@ -13,14 +14,21 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.telegram.telegrambots.ApiContextInitializer;
 
-//@SpringBootApplication
-@org.springframework.context.annotation.Configuration
-@EnableAutoConfiguration
-@ComponentScan
+@SpringBootApplication
+@Log4j2
 public class KeepMePostedApplication {
 
     public static void main(String[] args) {
-        ApiContextInitializer.init();
+        // Включи тор браузер
+        System.getProperties().put("proxySet", "true");
+        System.getProperties().put("socksProxyHost", "127.0.0.1");
+        System.getProperties().put("socksProxyPort", "9150");
+
+        try {
+            ApiContextInitializer.init();
+        } catch (Exception e) {
+            log.error("Включите Tor Browser");
+        }
         SpringApplication.run(KeepMePostedApplication.class, args);
     }
 

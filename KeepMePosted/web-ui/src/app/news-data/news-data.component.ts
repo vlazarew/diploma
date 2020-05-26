@@ -35,12 +35,11 @@ export class NewsDataComponent implements OnInit {
   constructor(private httpClient: HttpClient,
               private router: Router,
               private apiService: ApiService,
-              public timePeriodService: TimePeriodService,
               private newsDataService: NewsDataService) {
   }
 
   ngOnInit(): void {
-    setInterval(()=>this.setAllNews(), 1000);
+    setInterval(()=>this.setAllNews(), 10);
   }
 
   setAllNews(){
