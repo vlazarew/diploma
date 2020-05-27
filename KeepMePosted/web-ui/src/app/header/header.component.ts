@@ -1,20 +1,4 @@
-import {Component, Injectable, OnInit} from '@angular/core';
-import {Subject} from 'rxjs';
-import {NewsDataService} from '../news-data/news-data.service';
-
-@Injectable({
-  providedIn: 'root',
-})
-export class TimePeriodService {
-  typeOfTimePeriod: Subject<string> = new Subject<string>();
-
-  constructor(private newsDataService: NewsDataService) {
-    this.typeOfTimePeriod.next('10min');
-    this.typeOfTimePeriod.asObservable().subscribe((data) => {
-      this.newsDataService.getNewsFromDB(data);
-    });
-  }
-}
+import {Component, OnInit} from '@angular/core';
 
 export interface UserInfo {
   firstname: string;

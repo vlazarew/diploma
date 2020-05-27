@@ -1,6 +1,20 @@
-import {Component, OnInit} from '@angular/core';
-import {TimePeriodService} from '../header/header.component';
-import {valueReferenceToExpression} from '@angular/compiler-cli/src/ngtsc/annotations/src/util';
+import {Component, Injectable, OnInit} from '@angular/core';
+import {Subject} from 'rxjs';
+import {NewsDataService} from '../news-data/news-data.service';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class TimePeriodService {
+  typeOfTimePeriod: Subject<string> = new Subject<string>();
+
+  constructor(private newsDataService: NewsDataService) {
+    this.typeOfTimePeriod.next('10min');
+    this.typeOfTimePeriod.asObservable().subscribe((data) => {
+      this.newsDataService.getNewsFromDB(data);
+    });
+  }
+}
 
 const LIST: string[] = ['10 минут', 'Час', 'День', 'Неделя', 'Месяц', 'Год'];
 
@@ -19,30 +33,6 @@ export class TimeSwitcherComponent implements OnInit {
   }
 
   ngOnInit(): void {
-  }
-
-  OnClick10min() {
-    this.timePeriodService.typeOfTimePeriod.next('10min');
-  }
-
-  OnClick1h() {
-    this.timePeriodService.typeOfTimePeriod.next('1h');
-  }
-
-  OnClick1d() {
-    this.timePeriodService.typeOfTimePeriod.next('1d');
-  }
-
-  OnClick1w() {
-    this.timePeriodService.typeOfTimePeriod.next('1w');
-  }
-
-  OnClick1m() {
-    this.timePeriodService.typeOfTimePeriod.next('1m');
-  }
-
-  OnClick1y() {
-    this.timePeriodService.typeOfTimePeriod.next('1y');
   }
 
   OnSelectedItem(item: string): void {
@@ -74,5 +64,7 @@ export class TimeSwitcherComponent implements OnInit {
       }
     }
   }
+
+
 
 }

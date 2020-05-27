@@ -13,9 +13,7 @@ img {
   height: 46px;
 }
 
-.topBarItems:first-child {
-  border-left: 0;
-}
+
 
 .profile {
   margin-right: 0;

@@ -1,20 +1,26 @@
 import {Injectable} from '@angular/core';
-import {ApiService} from '../api/api.service';
+import {ApiService, urlDB} from '../api/api.service';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NewsDataService {
 
-  newsOnPage = 10;
-  numberOfPage = 0;
-  typeOfTimePeriod = '10min';
+  newsOnPage;
+  numberOfPage;
+  typeOfTimePeriod;
 
   news$: any;
 
-  constructor(private apiService: ApiService) {
+  constructor(private apiService: ApiService,
+              private httpClient: HttpClient) {
+    this.newsOnPage = 10;
+    this.numberOfPage = 0;
+    this.typeOfTimePeriod = '10min';
+
     this.getNewsFromDB(this.typeOfTimePeriod);
-    setInterval(() => this.getNewsFromDB(this.typeOfTimePeriod), 10000);
+    setInterval(() => this.getNewsFromDBByCountNews(this.newsOnPage, this.numberOfPage), 10000);
   }
 
   getNewsFromDB(typeOfTimePeriod: string): any {
@@ -26,8 +32,24 @@ export class NewsDataService {
     });
   }
 
+  getNewsFromDBByCountNews(newsOnPage: number, numberOfPage: number): any {
+    this.newsOnPage = newsOnPage;
+    this.numberOfPage = numberOfPage;
+
+    this.apiService.get('/news?numberOfPage=' + numberOfPage +
+      '&newsOnPage=' + newsOnPage +
+      '&typeOfTimePeriod=' + this.typeOfTimePeriod).subscribe(data => {
+      this.news$ = data;
+    });
+  }
+
   getNews(): any {
     return this.news$;
   }
 
+  updateCountOfViews(id: number) {
+    return this.httpClient.post(urlDB + '/news/add_count_of_views', id, {
+      headers: new HttpHeaders().set('Content-type', 'application/json'),
+    }).subscribe(this.getNewsFromDB(this.typeOfTimePeriod));
+  }
 }

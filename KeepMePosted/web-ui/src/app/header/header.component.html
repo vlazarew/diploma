@@ -2,6 +2,12 @@
   <span><a routerLink="/home" class="logoName">Keep me posted App</a></span>
   <span><a routerLink="/home"><img src="assets/icon.jpg" alt="Логотип"/></a></span>
 
+<!--  <mat-button-toggle-group appearance="legacy" name="fontStyle" aria-label="Font Style">-->
+<!--    <mat-button-toggle value="bold">Bold</mat-button-toggle>-->
+<!--    <mat-button-toggle value="italic">Italic</mat-button-toggle>-->
+<!--    <mat-button-toggle value="underline">Underline</mat-button-toggle>-->
+<!--  </mat-button-toggle-group>-->
+
   <div class="profile">
     <div *ngIf="registered">
       <button mat-button [matMenuTriggerFor]="userInfo">{{user.firstname}} {{user.lastname}}</button>
@@ -21,5 +27,7 @@
       </mat-menu>
     </div>
   </div>
+
+
 
 </mat-toolbar>

@@ -14,6 +14,7 @@ import com.sun.syndication.io.XmlReader;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.core.util.KeyValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -230,6 +231,15 @@ public class NewsService {
             put(lentaRuRSSLink, "Lenta.ru");
         }};
 
+        HashMap<String, String> photoUrls = new HashMap<String, String>() {{
+            put(rbkRSSLink, "/assets/rbk_logo.jpg");
+            put(riaTassRSSLink, "/assets/riaTass_logo.png");
+            put(vestiRuRSSLink, "/assets/vestiRu_logo.jpg");
+            put(vedomostiRSSLink, "/assets/vedomosti_logo.png");
+            put(izvestiyaRSSLink, "/assets/izvestiya_logo.jpg");
+            put(lentaRuRSSLink, "/assets/lentaRu_logo.png");
+        }};
+
         return newsSourceRepository.findBySourceName(sourceName).orElseGet(() -> {
             NewsSource newNewsSource = new NewsSource();
             newNewsSource.setSourceName(sourceName);
@@ -237,10 +247,11 @@ public class NewsService {
             newNewsSource.setLastUpdate(LocalDateTime.now());
             newNewsSource.setLink(feed.getLink());
 
-            SyndImage image = feed.getImage();
-            if (image != null) {
-                newNewsSource.setLogoImageUrl(image.getUrl());
-            }
+//            SyndImage image = feed.getImage();
+//            if (image != null) {
+//                newNewsSource.setLogoImageUrl(image.getUrl());
+//            }
+            newNewsSource.setLogoImageUrl(photoUrls.get(rssLink));
 
             return newsSourceRepository.save(newNewsSource);
         });

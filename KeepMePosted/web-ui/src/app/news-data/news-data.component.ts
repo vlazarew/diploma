@@ -1,9 +1,20 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, EventEmitter, OnInit, Output} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Router} from '@angular/router';
 import {ApiService} from '../api/api.service';
-import {TimePeriodService} from '../header/header.component';
 import {NewsDataService} from './news-data.service';
+import {PageEvent} from '@angular/material/paginator';
+
+// export class UpdateCountOfViews {
+//   countOfViews: number;
+//
+//   // tslint:disable-next-line:ban-types
+//   @Output() saveCountOfViews = new EventEmitter<String>();
+//
+//   saveCount(): void {
+//     this.countOfViews.emit();
+//   }
+// }
 
 export interface News {
   position: number;
@@ -21,30 +32,63 @@ export interface News {
 export class NewsDataComponent implements OnInit {
 
   allNews: any;
+  countOfNews: number;
+  countOfPages: number;
 
-  newsItems: News[] = [
-    {position: 1, delta: 1, logo: 'assets/izvestiya_logo.jpg', title: 'news 1', countOfViews: 15},
-    {position: 2, delta: -2, logo: 'assets/lentaRu_logo.png', title: 'news 2', countOfViews: 1},
-    {position: 3, delta: 3, logo: 'assets/rbk_logo.jpg', title: 'news 3', countOfViews: 2},
-    {position: 4, delta: -4, logo: 'assets/riaTass_logo.png', title: 'news 4', countOfViews: 3},
-    {position: 5, delta: 5, logo: 'assets/vedomosti_logo.png', title: 'news 5', countOfViews: 5},
-  ];
+  pageSize: number;
+  pageIndex: number;
 
-  displayedColumns: string[] = ['position', 'delta', 'logo', 'title', 'countOfViews'];
+  displayedColumns: string[] = ['position', 'delta', 'logo', 'title', 'countOfViewers'];
+  pageEvent: PageEvent;
 
   constructor(private httpClient: HttpClient,
               private router: Router,
               private apiService: ApiService,
-              public timePeriodService: TimePeriodService,
               private newsDataService: NewsDataService) {
+    this.pageSize = 10;
+    this.pageIndex = 0;
   }
 
   ngOnInit(): void {
     setInterval(() => this.setAllNews(), 10);
   }
 
-  setAllNews(){
-    this.allNews = this.newsDataService.getNews();
+  setAllNews() {
+    const data = this.newsDataService.getNews();
+    if (data === undefined) {
+      return;
+    }
+
+    if (data[0].length === 0) {
+      this.pageIndex = 0;
+      this.newsDataService.getNewsFromDBByCountNews(this.pageSize, this.pageIndex);
+      this.setAllNews();
+    }
+    this.allNews = data[0];
+    this.countOfNews = data[1];
+    this.countOfPages = data[2];
   }
 
+  OnClickNews(element: any): void {
+    this.newsDataService.updateCountOfViews(element.id);
+  }
+
+  UpdateCount(event: any, element: any): void {
+    if (event.button === 1) {
+      this.newsDataService.updateCountOfViews(element.id);
+    }
+  }
+
+  setPageSizeOptions(setPageSizeOptionsInput: any): void {
+    this.pageSize = setPageSizeOptionsInput.pageSize;
+    this.pageIndex = setPageSizeOptionsInput.pageIndex;
+
+    this.newsDataService.getNewsFromDBByCountNews(this.pageSize, this.pageIndex);
+    this.setAllNews();
+    // if (this.allNews[0].length === 0) {
+    //   this.pageIndex = 0;
+    //   this.newsDataService.getNewsFromDBByCountNews(this.pageSize, this.pageIndex);
+    //   this.setAllNews();
+    // }
+  }
 }

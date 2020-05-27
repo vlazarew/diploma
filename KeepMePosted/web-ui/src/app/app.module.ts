@@ -2,7 +2,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 
 import {AppComponent} from './app.component';
-import {HeaderComponent, TimePeriodService} from './header/header.component';
+import {HeaderComponent} from './header/header.component';
 import {AppRoutingModule} from './app-routing.module';
 import {RouterModule} from '@angular/router';
 import {HomeComponent} from './home/home.component';
@@ -15,10 +15,11 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatIconModule} from '@angular/material/icon';
-import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatPaginatorIntl, MatPaginatorModule} from '@angular/material/paginator';
 import {HttpClientModule} from '@angular/common/http';
 import {NewsDataService} from './news-data/news-data.service';
-import { TimeSwitcherComponent } from './time-switcher/time-switcher.component';
+import {TimeSwitcherComponent} from './time-switcher/time-switcher.component';
+import {CustomPaginator} from './custom-paginator/custom-paginator';
 
 @NgModule({
   declarations: [
@@ -43,7 +44,8 @@ import { TimeSwitcherComponent } from './time-switcher/time-switcher.component';
     MatPaginatorModule,
     HttpClientModule
   ],
-  providers: [TimePeriodService, NewsDataService],
+  providers: [NewsDataService,
+    {provide: MatPaginatorIntl, useClass: CustomPaginator}],
   bootstrap: [AppComponent]
 })
 export class AppModule {
