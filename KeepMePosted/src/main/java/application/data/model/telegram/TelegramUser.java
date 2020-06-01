@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -19,7 +20,8 @@ public class TelegramUser extends AbstractTelegramEntity {
 
     String userName;
     Boolean bot;
-    Boolean registered = false;
+    // false - Активируется блок с регистрацией, true - регистрации не будет
+    Boolean registered = true;
     String firstName;
     String lastName;
     String languageCode;

@@ -31,8 +31,11 @@ public class Tweet {
     Integer retweetCount;
     Integer favoriteCount;
 
-    String hashtag;
-    String nickname;
+    @OneToOne
+    TwitterHashtag hashtag;
+
+    @OneToOne
+    TwitterPeople nickname;
 
     String link;
 

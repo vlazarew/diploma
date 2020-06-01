@@ -1,10 +1,10 @@
 package application.service.news;
 
-import application.data.model.service.FollowingHashtags;
-import application.data.model.service.FollowingPeoples;
+import application.data.model.twitter.TwitterHashtag;
+import application.data.model.twitter.TwitterPeople;
 import application.data.model.twitter.Tweet;
-import application.data.repository.service.FollowingHashtagsRepository;
-import application.data.repository.service.FollowingPeoplesRepository;
+import application.data.repository.twitter.TwitterHashtagRepository;
+import application.data.repository.twitter.TwitterPeopleRepository;
 import application.data.repository.twitter.TweetRepository;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -20,6 +20,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.social.twitter.api.Twitter;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,9 +48,9 @@ public class TwitterService {
     TweetRepository tweetRepository;
 
     @Autowired
-    FollowingHashtagsRepository followingHashtagsRepository;
+    TwitterHashtagRepository twitterHashtagRepository;
     @Autowired
-    FollowingPeoplesRepository followingPeoplesRepository;
+    TwitterPeopleRepository twitterPeopleRepository;
 
     @Scheduled(fixedRate = 300000)
     @Async
@@ -61,7 +63,7 @@ public class TwitterService {
 
     @Async
     void updateTweetsByHashtag(Twitter twitter) {
-        Iterable<FollowingHashtags> followingHashtags = followingHashtagsRepository.findAll();
+        Iterable<TwitterHashtag> followingHashtags = twitterHashtagRepository.findAll();
 
         followingHashtags.forEach(followingHashtag -> {
             String hashtag = followingHashtag.getHashtag();
@@ -80,7 +82,13 @@ public class TwitterService {
                     customTweet.setText(tweet.getText());
                 } else {
                     customTweet = mapper.map(tweet, Tweet.class);
-                    customTweet.setHashtag(searchedWord);
+                    TwitterHashtag twitterHashtag = twitterHashtagRepository.findByHashtag(hashtag);
+                    if (twitterHashtag == null) {
+                        twitterHashtag = new TwitterHashtag();
+                        twitterHashtag.setHashtag(hashtag);
+                        twitterHashtagRepository.save(twitterHashtag);
+                    }
+                    customTweet.setHashtag(twitterHashtag);
                 }
 
                 tweetRepository.save(customTweet);
@@ -90,8 +98,9 @@ public class TwitterService {
     }
 
     @Async
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     void updateTweetsByPeople(Twitter twitter) {
-        Iterable<FollowingPeoples> followingPeoples = followingPeoplesRepository.findAll();
+        Iterable<TwitterPeople> followingPeoples = twitterPeopleRepository.findAll();
 
         followingPeoples.forEach(followingPeople -> {
             String nickname = followingPeople.getNickname();
@@ -110,7 +119,14 @@ public class TwitterService {
                     customTweet.setText(tweet.getText());
                 } else {
                     customTweet = mapper.map(tweet, Tweet.class);
-                    customTweet.setNickname(searchedWord);
+
+                    TwitterPeople twitterPeople = twitterPeopleRepository.findByNickname(nickname);
+                    if (twitterPeople == null) {
+                        twitterPeople = new TwitterPeople();
+                        twitterPeople.setNickname(nickname);
+                        twitterPeopleRepository.save(twitterPeople);
+                    }
+                    customTweet.setNickname(twitterPeople);
                 }
 
                 tweetRepository.save(customTweet);

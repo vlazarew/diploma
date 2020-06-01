@@ -27,14 +27,12 @@ import java.util.Set;
 @RequiredArgsConstructor
 @RequestMapping(value = "/news", produces = "application/json")
 @CrossOrigin("*")
-@EnableAsync
 public class NewsController {
 
     @Autowired
     NewsItemRepository newsItemRepository;
 
     @GetMapping(params = {"numberOfPage", "newsOnPage", "typeOfTimePeriod"}, produces = "application/json")
-//    @Async
     public ArrayList<Object> allNews(@RequestParam("numberOfPage") int numberOfPage,
                                      @RequestParam("newsOnPage") int newsOnPage,
                                      @RequestParam("typeOfTimePeriod") String typeOfTimePeriod) {
@@ -58,7 +56,6 @@ public class NewsController {
 
     @PostMapping(value = "/add_count_of_views", consumes = "application/json")
     @ResponseStatus(HttpStatus.CHECKPOINT)
-//    @Async
     public void updateCountOfViews(@RequestBody long id) {
         Optional<NewsItem> newsItemOptional = newsItemRepository.findById(id);
         if (newsItemOptional.isPresent()) {

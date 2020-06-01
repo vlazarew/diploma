@@ -7,8 +7,9 @@ import java.util.List;
 
 public interface WeatherSettingsRepository extends CrudRepository<WeatherSettings, Long> {
 
-    WeatherSettings findByUserIdAndCity(Integer userId, String city);
+//    WeatherSettings findByUserIdAndCity(Integer userId, String city);
 
-    List<WeatherSettings> findByUserId(Integer userId);
+//    List<WeatherSettings> findByUserId(Integer userId);
+    WeatherSettings findByUserId(Integer userId);
 
 }

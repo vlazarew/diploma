@@ -22,9 +22,11 @@ public interface NewsItemRepository extends JpaRepository<NewsItem, Long> {
 
 //    List<NewsItem> findTop15ByTitleContainingOrderByPublicationDateDesc(List<String> title);
 
-    List<NewsItem> findTop10ByCategoryListInOrderByPublicationDateDescCreationDateDesc(List<NewsCategory> categoryList);
+    NewsItem findTop1ByCategoryListInAndPublicationDateBeforeOrderByPublicationDateDescCreationDateDesc(List<NewsCategory> categoryList,
+                                                                                                     Date publicationDate);
 
-    List<NewsItem> findTop10ByIdIsNotNullOrderByPublicationDateDescCreationDateDesc();
+    NewsItem findTop1ByIdIsNotNullAndPublicationDateBeforeOrderByPublicationDateDescCreationDateDesc(Date publicationDate);
+//    List<NewsItem> findTop10ByIdIsNotNullOrderByPublicationDateDescCreationDateDesc();
 
     Page<NewsItem> findByPublicationDateBetweenOrderByCountOfViewersDescPublicationDateDescCreationDateDesc(Date publicationDateStart,
                                                                                                             Date publicationDateEnd,

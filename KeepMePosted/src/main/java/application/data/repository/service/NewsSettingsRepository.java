@@ -10,9 +10,9 @@ import java.util.List;
 
 public interface NewsSettingsRepository extends CrudRepository<NewsSettings, Long> {
 
-    List<NewsSettings> findByUserId(Integer userId);
+    NewsSettings findByUserId(Integer userId);
 
-    NewsSettings findByUserIdAndKeyword(Integer userId, String keyword);
+//    NewsSettings findByUserIdAndKeyword(Integer userId, String keyword);
 
 //    @Query(value = "select NewsSettings.keyword from NewsSettings where NewsSettings.user.id = :userId")
 //    @Lazy
