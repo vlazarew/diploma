@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -117,7 +118,9 @@ public class WeatherSettingHandler extends TelegramHandler {
         WeatherCity weatherCity = findCreateWeatherCity(city);
 
         WeatherSettings weatherSettings = new WeatherSettings();
-        weatherSettings.setCities(weatherCity);
+        Set<WeatherCity> weatherCities = new HashSet<>();
+        weatherCities.add(weatherCity);
+        weatherSettings.setCities(weatherCities);
         weatherSettings.setUser(user);
 
         weatherSettings.setNotificationServiceSettings(notificationServiceSettings);
@@ -164,7 +167,7 @@ public class WeatherSettingHandler extends TelegramHandler {
             locationListHandler(chatId, user, userAnswer);
         } else if (userAnswer.equals(CANCEL_BUTTON) && (status == UserStatus.AddCity || status == UserStatus.RemoveCity)) {
             String messageToUser = getMessageToUser(status);
-            sendNewsSettingsMessage(chatId, user, messageToUser, UserStatus.WeatherSettings);
+            sendWeatherSettingsMessage(chatId, user, messageToUser, UserStatus.WeatherSettings);
         } else if ((status == UserStatus.AddCity || status == UserStatus.RemoveCity)) {
             sendAddRemoveMessageToUser(chatId, user, userAnswer, status);
         }
@@ -208,12 +211,12 @@ public class WeatherSettingHandler extends TelegramHandler {
         String messageToUser;
         if (status == UserStatus.AddCity) {
             messageToUser = addWeatherSettingsToUser(user, userAnswer)
-                    ? "Категория *" + userAnswer + "* добавлена в список отслеживаемых"
-                    : "Категория *" + userAnswer + "* уже отслеживается вами";
+                    ? "Город *" + userAnswer + "* добавлен в список отслеживаемых"
+                    : "Город *" + userAnswer + "* уже отслеживается вами";
         } else if (status == UserStatus.RemoveCity) {
             messageToUser = removeWeatherSettingsToUser(user, userAnswer)
-                    ? "Категория *" + userAnswer + "* удалена из списка отслеживаемых"
-                    : "Категория *" + userAnswer + "* не отслеживалась вами";
+                    ? "Город *" + userAnswer + "* удален из списка отслеживаемых"
+                    : "Город *" + userAnswer + "* не отслеживается вами";
         } else {
             return;
         }
@@ -246,7 +249,7 @@ public class WeatherSettingHandler extends TelegramHandler {
     private String listWeatherLocationsToUser(TelegramUser user) {
         WeatherSettings weatherSettings = weatherSettingsRepository.findByUserId(user.getId());
         if (weatherSettings == null) {
-            addWeatherSettingsToUser(user, "");
+//            addWeatherSettingsToUser(user, "");
             return "*Список отслеживаемых городов пуст*";
         }
 

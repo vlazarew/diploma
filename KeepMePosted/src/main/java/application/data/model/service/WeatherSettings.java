@@ -14,8 +14,7 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(indexes = {@Index(columnList = "user_id", name = "weather_settings_user_id_index"),
-        @Index(columnList = "city", name = "weather_settings_city_index")})
+@Table(indexes = {@Index(columnList = "user_id", name = "weather_settings_user_id_index")})
 public class WeatherSettings {
 
     @Id

@@ -1,5 +1,6 @@
 package application.utils.handler;
 
+import application.data.model.YandexWeather.WeatherCity;
 import application.data.model.YandexWeather.YandexWeather;
 import application.data.model.YandexWeather.YandexWeatherFact;
 import application.data.model.YandexWeather.YandexWeatherTZInfo;
@@ -400,7 +401,8 @@ public class TelegramHandler implements TelegramMessageHandler {
     }
 
     private List<String> getInfoAboutFollowingCities(TelegramUser telegramUser, boolean isUserLocation) {
-        List<WeatherSettings> weatherSettingsList = weatherSettingsRepository.findByUserId(telegramUser.getId());
+        WeatherSettings weatherSettings = weatherSettingsRepository.findByUserId(telegramUser.getId());
+        Set<WeatherCity> weatherCities = weatherSettings.getCities();
         List<String> resultList = new ArrayList<>();
 
         if (isUserLocation) {
@@ -410,12 +412,12 @@ public class TelegramHandler implements TelegramMessageHandler {
 
             resultList.add(infoAboutCity);
 
-        } else if (weatherSettingsList.isEmpty()) {
+        } else if (weatherCities.isEmpty()) {
             resultList.add("Список отслеживаемых городов пуст.");
         } else {
-            weatherSettingsList.forEach(weatherSettings -> {
-                String infoAboutCity = saveWeatherInfoAndDoMessageToUser(weatherSettings.getLongitude(),
-                        weatherSettings.getLatitude(), telegramUser, false, weatherSettings.getCity());
+            weatherCities.forEach(city -> {
+                String infoAboutCity = saveWeatherInfoAndDoMessageToUser(city.getLongitude(),
+                        city.getLatitude(), telegramUser, false, city.getName());
 
                 resultList.add(infoAboutCity);
             });
