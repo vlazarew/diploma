@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.Set;
 
 @Entity
@@ -20,6 +21,15 @@ public class WeatherSettings {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
+
+    Date lastCityCreationDate;
+
+    @ManyToOne
+    WeatherCity lastViewedWeatherCity;
+
+    @OneToMany(fetch = FetchType.EAGER)
+    @OrderBy("creationDate asc")
+    Set<WeatherCity> viewedCities;
 
     @OneToMany(fetch = FetchType.EAGER)
     Set<WeatherCity> cities;

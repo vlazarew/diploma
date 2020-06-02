@@ -48,13 +48,14 @@ public class YandexGeoCoderService {
         HttpGet request = createRequest(coordinates);
 
         try (CloseableHttpResponse response = httpClient.execute(request)) {
-            if (response.getStatusLine().getStatusCode() == 200) {
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 200) {
 
                 JsonObject geoObject = getJSONObject(response);
 
                 return (geoObject == null) ? null : geoObject.get("name").getAsString();
             } else {
-                log.error("Сервис не отвечает");
+                log.error("Сервис геокодирования не отвечает. Код ответа: " + statusCode);
                 return null;
             }
 
@@ -106,6 +107,8 @@ public class YandexGeoCoderService {
                 .append("=")
                 .append(nameValuePair.getValue())
                 .append("&"));
+
+        requestUrl.deleteCharAt(requestUrl.length() - 1);
 
         return new HttpGet(requestUrl.toString());
     }

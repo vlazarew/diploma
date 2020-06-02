@@ -25,9 +25,9 @@ public interface TelegramMessageHandler {
 
     void sendTwitterWatchKeyboard(Long chatId, TelegramUser user, UserStatus status, boolean isNextNews);
 
-    void sendMessageToUserByCustomMainKeyboard(Long chatId, TelegramUser telegramUser, String text, UserStatus status);
+    void sendWeatherWatchKeyboard(Long chatId, TelegramUser user, UserStatus status, boolean isNextForecast, boolean isUserLocation);
 
-    void sendSettingsKeyboard(Long chatId, String text, UserStatus status);
+    void sendMessageToUserByCustomMainKeyboard(Long chatId, TelegramUser telegramUser, String text, UserStatus status);
 
     void sendWeatherSettingsMessage(Long chatId, TelegramUser user, String text, UserStatus status);
 

@@ -160,7 +160,9 @@ public class YandexWeatherService {
                 YandexWeatherFact yandexWeatherFact = yandexWeather.getFact();
                 List<YandexWeatherForecast> yandexWeatherForecasts = yandexWeather.getForecasts();
                 // Ибо parts надо парсить по-особенному
-                setPartsToForecasts(mapper, str, yandexWeatherForecasts);
+                if (yandexWeatherForecasts != null) {
+                    setPartsToForecasts(mapper, str, yandexWeatherForecasts);
+                }
 
                 return saveWeatherData(yandexWeather, yandexWeatherInfo, yandexWeatherTZInfo, yandexWeatherFact,
                         yandexWeatherForecasts);
@@ -181,23 +183,27 @@ public class YandexWeatherService {
     YandexWeather saveWeatherData(YandexWeather yandexWeather, YandexWeatherInfo yandexWeatherInfo,
                                   YandexWeatherTZInfo yandexWeatherTZInfo, YandexWeatherFact yandexWeatherFact,
                                   List<YandexWeatherForecast> yandexWeatherForecasts) {
-        yandexWeatherTZInfoRepository.save(yandexWeatherTZInfo);
+        if (yandexWeatherTZInfo != null) {
+            yandexWeatherTZInfoRepository.save(yandexWeatherTZInfo);
+        }
         yandexWeatherInfoRepository.save(yandexWeatherInfo);
         yandexWeatherFactRepository.save(yandexWeatherFact);
 
-        yandexWeatherForecasts.forEach(yandexWeatherForecast -> {
-            List<YandexWeatherParts> yandexWeatherParts = yandexWeatherForecast.getParts();
-            yandexWeatherParts.forEach(yandexWeatherPart -> {
-                yandexWeatherPartsRepository.save(yandexWeatherPart);
-            });
+        if (yandexWeatherForecasts != null) {
+            yandexWeatherForecasts.forEach(yandexWeatherForecast -> {
+                List<YandexWeatherParts> yandexWeatherParts = yandexWeatherForecast.getParts();
+                yandexWeatherParts.forEach(yandexWeatherPart -> {
+                    yandexWeatherPartsRepository.save(yandexWeatherPart);
+                });
 
-            List<YandexWeatherHours> yandexWeatherHours = yandexWeatherForecast.getHours();
-            yandexWeatherHours.forEach(yandexWeatherHour -> {
-                yandexWeatherHoursRepository.save(yandexWeatherHour);
-            });
+                List<YandexWeatherHours> yandexWeatherHours = yandexWeatherForecast.getHours();
+                yandexWeatherHours.forEach(yandexWeatherHour -> {
+                    yandexWeatherHoursRepository.save(yandexWeatherHour);
+                });
 
-            yandexWeatherForecastRepository.save(yandexWeatherForecast);
-        });
+                yandexWeatherForecastRepository.save(yandexWeatherForecast);
+            });
+        }
 
         return yandexWeatherRepository.save(yandexWeather);
     }
@@ -239,7 +245,7 @@ public class YandexWeatherService {
             add(new BasicNameValuePair("lat", latitude));
             add(new BasicNameValuePair("lon", longitude));
 //            add(new BasicNameValuePair("extra", "true"));
-            add(new BasicNameValuePair("limit", "1"));
+//            add(new BasicNameValuePair("limit", "1"));
         }};
 
         urlParameters.forEach(nameValuePair -> requestUrl

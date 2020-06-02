@@ -91,7 +91,7 @@ public class TwitterMessageHandler extends TelegramHandler {
         } else if (userAnswer.equals(FIRST_ITEM_BUTTON) & isTwitterStatus) {
             clearUserNewsHistory(telegramUser, chatId);
         } else if (userAnswer.equals(ACTIVATE_PERSON_SETTINGS) || userAnswer.equals(DEACTIVATE_PERSON_SETTINGS) & isTwitterStatus) {
-            changeActivityForNews(telegramUser, chatId);
+            changeActivityForTwitter(telegramUser, chatId);
         }
     }
 
@@ -110,7 +110,7 @@ public class TwitterMessageHandler extends TelegramHandler {
     }
 
     @Transactional
-    void changeActivityForNews(TelegramUser telegramUser, Long chatId) {
+    void changeActivityForTwitter(TelegramUser telegramUser, Long chatId) {
         TwitterSettings twitterSettings = twitterSettingsRepository.findByUserId(telegramUser.getId());
         if (twitterSettings == null) {
             return;

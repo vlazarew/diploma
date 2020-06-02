@@ -2,10 +2,7 @@ package application.utils.handler;
 
 import application.data.model.YandexWeather.WeatherCity;
 import application.data.model.news.NewsCategory;
-import application.data.model.service.NewsSettings;
-import application.data.model.service.NotificationServiceSettings;
-import application.data.model.service.WeatherSettings;
-import application.data.model.service.WebService;
+import application.data.model.service.*;
 import application.data.model.telegram.*;
 import application.data.repository.YandexWeather.WeatherCityRepository;
 import application.service.geocoder.YandexGeoCoderService;
@@ -20,10 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -70,8 +64,9 @@ public class WeatherSettingHandler extends TelegramHandler {
                 addCityToFollow(chatId, user);
                 break;
             }
-            case MainPage: {
-                sendTextMessageForecastAboutFollowingCities(chatId, user, true);
+            case WeatherWatch: {
+//                sendTextMessageForecastAboutFollowingCities(chatId, user, true);
+                sendWeatherWatchKeyboard(chatId, user, UserStatus.WeatherWatch, true, true);
                 break;
             }
         }
@@ -101,7 +96,7 @@ public class WeatherSettingHandler extends TelegramHandler {
             saveWeatherSettings(user, cityText, notificationServiceSettings);
         } else {
             Set<WeatherCity> cities = weatherSettings.getCities();
-            WeatherCity city = weatherCityRepository.findByName(cityText);
+            WeatherCity city = findCreateWeatherCity(cityText);
             needToCreateNewRule = (!cities.contains(city));
 
             if (needToCreateNewRule) {
@@ -170,41 +165,31 @@ public class WeatherSettingHandler extends TelegramHandler {
             sendWeatherSettingsMessage(chatId, user, messageToUser, UserStatus.WeatherSettings);
         } else if ((status == UserStatus.AddCity || status == UserStatus.RemoveCity)) {
             sendAddRemoveMessageToUser(chatId, user, userAnswer, status);
+        } else if (((userAnswer.equals(WATCH_BUTTON) || userAnswer.equals(NEXT_ITEM_BUTTON)) & isWeatherStatus)) {
+            sendWeatherWatchKeyboard(chatId, user, UserStatus.WeatherWatch, true, false);
+        } else if (userAnswer.equals(PREVIOUS_ITEM_BUTTON) & isWeatherStatus) {
+            sendWeatherWatchKeyboard(chatId, user, UserStatus.WeatherWatch, false, false);
+        } else if (userAnswer.equals(EXIT_WATCH_BUTTON) & isWeatherStatus) {
+            sendNewsTwitterMainPageKeyboard(chatId, user, "Раздел Яндекс.Погода", UserStatus.WeatherMainPage);
+        } else if (userAnswer.equals(FIRST_ITEM_BUTTON) & isWeatherStatus) {
+            clearUserWeatherHistory(user, chatId);
+//        } else if (userAnswer.equals(WEATHER_IN_CURRENT_LOCATION_BUTTON)) {
+//            sendWeatherWatchKeyboard(chatId, user, UserStatus.WeatherWatch, true, true);
+        }
+    }
+
+    private void clearUserWeatherHistory(TelegramUser telegramUser, Long chatId) {
+        WeatherSettings weatherSettings = weatherSettingsRepository.findByUserId(telegramUser.getId());
+        if (weatherSettings == null) {
+            return;
         }
 
-//        if (userAnswer.equals(BACK_BUTTON) && (user.getStatus() == UserStatus.WeatherSettings)) {
-////            sendSettingsKeyboard(chatId, "Настройки бота", UserStatus.Settings);
-//        } else if (userAnswer.equals(ACTIVATE_WEATHER_BUTTON)) {
-//            saveServiceSettings(user, true, webService);
-//            sendWeatherSettingsMessage(chatId, user, "Оповещения включены", null);
-//        } else if (userAnswer.equals(DEACTIVATE_WEATHER_BUTTON)) {
-//            saveServiceSettings(user, false, webService);
-//            sendWeatherSettingsMessage(chatId, user, "Оповещения выключены", null);
-//        } else if (userAnswer.equals(ADD_CITY_WEATHER_BUTTON)) {
-//            String listOfCities = listWeatherSettingToUser(user, WebService.YandexWeather);
-//            String messageToUser = listOfCities + "\r\n\r\n" + "Введите добавляемый город";
-//            sendTextMessageAddDeleteSomething(chatId, messageToUser, UserStatus.AddCity);
-//        } else if (userAnswer.equals(REMOVE_CITY_WEATHER_BUTTON)) {
-//
-//            String listOfCities = listWeatherSettingToUser(user, WebService.YandexWeather);
-//            String messageToUser = listOfCities.equals("Список отслеживаемых городов пуст") ? listOfCities :
-//                    listOfCities + "\r\n\r\n" + "Введите удаляемый город";
-//
-//            sendTextMessageAddDeleteSomething(chatId, messageToUser, UserStatus.RemoveCity);
-//        } else if (userAnswer.equals(LIST_FOLLOWING_CITIES_BUTTON)) {
-//            String listOfCities = listWeatherSettingToUser(user, WebService.YandexWeather);
-//            sendWeatherSettingsMessage(chatId, user, listOfCities, null);
-//        } else if (userAnswer.equals(CANCEL_BUTTON) && (status == UserStatus.AddCity || status == UserStatus.RemoveCity)) {
-//            String messageToUser = (status == UserStatus.AddCity) ? "Добавление города отменено" :
-//                    "Удаление города отменено";
-//
-//            sendWeatherSettingsMessage(chatId, user, messageToUser, UserStatus.WeatherSettings);
-//        } else if (userAnswer.equals(SHOW_INFO_ABOUT_FOLLOWING_CITIES)) {
-//            sendTextMessageForecastAboutFollowingCities(chatId, user, false);
-//        } else if (status == UserStatus.AddCity || status == UserStatus.RemoveCity) {
-//            sendAddRemoveCityMessageToUser(chatId, user, userAnswer, status);
-//        }
+        weatherSettings.setLastViewedWeatherCity(null);
+        weatherSettings.setLastCityCreationDate(new Date());
+        weatherSettings.setViewedCities(new HashSet<>());
+        weatherSettingsRepository.save(weatherSettings);
 
+        sendWeatherWatchKeyboard(chatId, telegramUser, UserStatus.WeatherWatch, true, false);
     }
 
     private void sendAddRemoveMessageToUser(Long chatId, TelegramUser user, String userAnswer, UserStatus status) {

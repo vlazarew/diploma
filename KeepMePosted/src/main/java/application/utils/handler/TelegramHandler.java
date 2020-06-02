@@ -11,6 +11,7 @@ import application.data.model.telegram.*;
 import application.data.model.twitter.Tweet;
 import application.data.model.twitter.TwitterHashtag;
 import application.data.model.twitter.TwitterPeople;
+import application.data.repository.YandexWeather.WeatherCityRepository;
 import application.data.repository.news.NewsItemRepository;
 import application.data.repository.service.NewsSettingsRepository;
 import application.data.repository.service.NotificationServiceSettingsRepository;
@@ -39,6 +40,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.*;
 
 @Component
@@ -76,6 +78,8 @@ public class TelegramHandler implements TelegramMessageHandler {
     public TwitterPeopleRepository twitterPeopleRepository;
     @Autowired
     public TweetRepository tweetRepository;
+    @Autowired
+    public WeatherCityRepository weatherCityRepository;
 
     //region Кнопки в приложении
     @Value("${telegram.START_COMMAND}")
@@ -108,8 +112,8 @@ public class TelegramHandler implements TelegramMessageHandler {
     public String BACK_BUTTON;
 
     // Интеграция с погодой
-    @Value("${telegram.WEATHER_SETTINGS_BUTTON}")
-    public String WEATHER_SETTINGS_BUTTON;
+//    @Value("${telegram.WEATHER_SETTINGS_BUTTON}")
+//    public String WEATHER_SETTINGS_BUTTON;
     @Value("${telegram.ACTIVATE_WEATHER_BUTTON}")
     public String ACTIVATE_WEATHER_BUTTON;
     @Value("${telegram.DEACTIVATE_WEATHER_BUTTON}")
@@ -124,8 +128,8 @@ public class TelegramHandler implements TelegramMessageHandler {
     public String LIST_FOLLOWING_CITIES_BUTTON;
     @Value("${telegram.CANCEL_BUTTON}")
     public String CANCEL_BUTTON;
-//    @Value("${telegram.WEATHER_IN_CURRENT_LOCATION_BUTTON}")
-//    public String WEATHER_IN_CURRENT_LOCATION_BUTTON;
+    @Value("${telegram.WEATHER_IN_CURRENT_LOCATION_BUTTON}")
+    public String WEATHER_IN_CURRENT_LOCATION_BUTTON;
 //    @Value("${telegram.SHOW_INFO_ABOUT_FOLLOWING_CITIES}")
 //    public String SHOW_INFO_ABOUT_FOLLOWING_CITIES;
 
@@ -249,12 +253,6 @@ public class TelegramHandler implements TelegramMessageHandler {
     }
 
     @Override
-    public void sendSettingsKeyboard(Long chatId, String text, UserStatus status) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getMainSettingsKeyboard();
-        sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, status);
-    }
-
-    @Override
     public void sendTextMessageReplyKeyboardMarkup(Long chatId, String text, ReplyKeyboardMarkup replyKeyboardMarkup,
                                                    UserStatus status) {
         SendMessage sendMessage = makeSendMessage(chatId, text, replyKeyboardMarkup);
@@ -291,7 +289,13 @@ public class TelegramHandler implements TelegramMessageHandler {
 
     @Override
     public void sendTextMessageForecastAboutFollowingCities(Long chatId, TelegramUser telegramUser, boolean isUserLocation) {
-        List<String> textList = getInfoAboutFollowingCities(telegramUser, isUserLocation);
+        WeatherSettings weatherSettings = weatherSettingsRepository.findByUserId(telegramUser.getId());
+        Set<WeatherCity> weatherCities = weatherSettings.getCities();
+
+        List<String> textList = new ArrayList<>();
+        for (int index = 0; index < weatherCities.size(); index++) {
+            textList.add(getCityInfo(telegramUser, false, true));
+        }
         textList.forEach(text -> sendTextMessageReplyKeyboardMarkup(chatId, text, null, null));
     }
 
@@ -352,7 +356,12 @@ public class TelegramHandler implements TelegramMessageHandler {
 
     @Override
     public void sendTextMessageLastTweets(Long chatId, TelegramUser telegramUser, boolean isFollowingTweets) {
-//        sendTextMessageReplyKeyboardMarkup(chatId, getTweetsInfo(telegramUser, isFollowingTweets), null, null);
+        List<String> textList = new ArrayList<>();
+        for (int index = 0; index < 3; index++) {
+            textList.add(getTweetsInfo(telegramUser, isFollowingTweets));
+        }
+
+        textList.forEach(text -> sendTextMessageReplyKeyboardMarkup(chatId, text, null, null));
     }
 
     @Override
@@ -387,6 +396,13 @@ public class TelegramHandler implements TelegramMessageHandler {
         sendTextMessageReplyKeyboardMarkup(chatId, getTweetsInfo(user, isNextNews), replyKeyboardMarkup, status);
     }
 
+    @Override
+    public void sendWeatherWatchKeyboard(Long chatId, TelegramUser user, UserStatus status,
+                                         boolean isNextForecast, boolean isUserLocation) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = telegramKeyboards.getNewsWatchKeyboard(user);
+        sendTextMessageReplyKeyboardMarkup(chatId, getCityInfo(user, isUserLocation, isNextForecast), replyKeyboardMarkup, status);
+    }
+
     //endregion
 
     //region Help methods
@@ -400,31 +416,81 @@ public class TelegramHandler implements TelegramMessageHandler {
         return sendMessage;
     }
 
-    private List<String> getInfoAboutFollowingCities(TelegramUser telegramUser, boolean isUserLocation) {
+    private String getCityInfo(TelegramUser telegramUser, boolean isUserLocation, boolean isNextForecast) {
         WeatherSettings weatherSettings = weatherSettingsRepository.findByUserId(telegramUser.getId());
-        Set<WeatherCity> weatherCities = weatherSettings.getCities();
-        List<String> resultList = new ArrayList<>();
+        StringBuilder result = new StringBuilder();
+
+        if (weatherSettings == null) {
+            isUserLocation = true;
+        }
 
         if (isUserLocation) {
             TelegramLocation userLocation = telegramUser.getLocation();
-            String infoAboutCity = saveWeatherInfoAndDoMessageToUser(userLocation.getLongitude(),
+            return saveWeatherInfoAndDoMessageToUser(userLocation.getLongitude(),
                     userLocation.getLatitude(), telegramUser, true, userLocation.getCity());
-
-            resultList.add(infoAboutCity);
-
-        } else if (weatherCities.isEmpty()) {
-            resultList.add("Список отслеживаемых городов пуст.");
-        } else {
-            weatherCities.forEach(city -> {
-                String infoAboutCity = saveWeatherInfoAndDoMessageToUser(city.getLongitude(),
-                        city.getLatitude(), telegramUser, false, city.getName());
-
-                resultList.add(infoAboutCity);
-            });
-
         }
 
-        return resultList;
+        Set<WeatherCity> weatherCities = weatherSettings.getCities();
+        if (weatherCities.isEmpty()) {
+            return "Список отслеживаемых городов пуст.";
+        }
+
+        WeatherCity weatherCity;
+        if (isNextForecast) {
+            Date lastCreationDate = weatherSettings.getLastCityCreationDate();
+            if (lastCreationDate == null) {
+                lastCreationDate = new Date();
+            }
+
+            weatherCity = weatherCityRepository.findTop1ByCreationDateBeforeOrderByCreationDateDesc
+                    (lastCreationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        } else {
+            Object[] lastCities = weatherSettings.getViewedCities().toArray();
+            if (lastCities.length > 0) {
+                weatherCity = (WeatherCity) lastCities[0];
+            } else {
+                return "Нет ранее просмотренных элементов";
+            }
+        }
+
+        if (weatherCity == null) {
+            return "Больше нет отслеживаемых городов";
+        }
+
+        float longitude = weatherCity.getLongitude();
+        float latitude = weatherCity.getLatitude();
+        String city = weatherCity.getName();
+
+        result.append(saveWeatherInfoAndDoMessageToUser(longitude,
+                latitude, telegramUser, false, city));
+
+        weatherSettings.setLastCityCreationDate(Date.from(weatherCity.getCreationDate().atZone(ZoneId.systemDefault()).toInstant()));
+        Set<WeatherCity> viewedCities = weatherSettings.getViewedCities();
+        if (viewedCities == null) {
+            viewedCities = new HashSet<>();
+        }
+
+        if (isNextForecast) {
+            WeatherCity lastViewedWeatherCity = weatherSettings.getLastViewedWeatherCity();
+            if (lastViewedWeatherCity != null) {
+                viewedCities.add(lastViewedWeatherCity);
+            }
+        } else {
+            Object[] lastCities = viewedCities.toArray();
+            if (lastCities.length > 1) {
+                weatherSettings.setLastViewedWeatherCity((WeatherCity) lastCities[1]);
+            }
+            viewedCities.clear();
+            for (int index = 1; index <= lastCities.length - 1; index++) {
+                viewedCities.add((WeatherCity) lastCities[index]);
+            }
+        }
+
+        weatherSettings.setLastViewedWeatherCity(weatherCity);
+        weatherCityRepository.save(weatherCity);
+        weatherSettingsRepository.save(weatherSettings);
+
+        return result.toString();
     }
 
     private String saveWeatherInfoAndDoMessageToUser(float longitude, float latitude,
