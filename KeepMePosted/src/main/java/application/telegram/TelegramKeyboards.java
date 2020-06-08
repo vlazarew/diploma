@@ -73,38 +73,13 @@ public class TelegramKeyboards {
         List<KeyboardRow> keyboard = new ArrayList<>();
 
         KeyboardRow keyboardFirstRow = new KeyboardRow();
-//        KeyboardRow keyboardSecondRow = new KeyboardRow();
-//        KeyboardRow keyboardThirdRow = new KeyboardRow();
-//        KeyboardRow keyboardFourthRow = new KeyboardRow();
-//        KeyboardRow fifthKeyboardRow = new KeyboardRow();
-//
-//        if (user.getRegistered() != null && user.getRegistered()) {
-//            keyboardFirstRow.add(new KeyboardButton(telegramHandler.WEATHER_IN_CURRENT_LOCATION_BUTTON).setRequestLocation(true));
-//            keyboardFirstRow.add(new KeyboardButton(telegramHandler.SHOW_INFO_ABOUT_FOLLOWING_CITIES));
-//
-//            keyboardSecondRow.add(new KeyboardButton(telegramHandler.SHOW_ALL_NEWS));
-//            keyboardSecondRow.add(new KeyboardButton(telegramHandler.SHOW_FOLLOWING_NEWS));
-//
-//            keyboardThirdRow.add(new KeyboardButton((telegramHandler.SHOW_MOST_POPULAR_TWEETS)));
-//            keyboardThirdRow.add(new KeyboardButton((telegramHandler.SHOW_FOLLOWING_TWEETS)));
-//
-//            keyboardFourthRow.add(new KeyboardButton(telegramHandler.SETTINGS_BUTTON));
-//        } else {
-//            keyboardFirstRow.add(new KeyboardButton(telegramHandler.HELLO_BUTTON));
-//            keyboardFirstRow.add(new KeyboardButton(telegramHandler.REGISTER_BUTTON));
-//
-//            keyboardSecondRow.add(new KeyboardButton(telegramHandler.HELP_BUTTON));
-//        }
 
         keyboardFirstRow.add(new KeyboardButton(telegramHandler.NEWS_BUTTON));
         keyboardFirstRow.add(new KeyboardButton(telegramHandler.TWITTER_BUTTON));
         keyboardFirstRow.add(new KeyboardButton(telegramHandler.WEATHER_BUTTON));
 
         keyboard.add(keyboardFirstRow);
-//        keyboard.add(keyboardSecondRow);
-//        keyboard.add(keyboardThirdRow);
-//        keyboard.add(keyboardFourthRow);
-//        keyboard.add(fifthKeyboardRow);
+
 
         replyKeyboardMarkup.setKeyboard(keyboard);
         return replyKeyboardMarkup;
@@ -148,37 +123,6 @@ public class TelegramKeyboards {
         return replyKeyboardMarkup;
     }
 
-
-//    public ReplyKeyboardMarkup getMainSettingsKeyboard() {
-//        ReplyKeyboardMarkup replyKeyboardMarkup = getTunedReplyKeyboardMarkup();
-//
-//        List<KeyboardRow> keyboard = new ArrayList<>();
-//        KeyboardRow firstKeyboardRow = new KeyboardRow();
-//        firstKeyboardRow.add(new KeyboardButton(telegramHandler.WEATHER_SETTINGS_BUTTON));
-//
-//        KeyboardRow secondKeyboardRow = new KeyboardRow();
-//        secondKeyboardRow.add(new KeyboardButton(telegramHandler.NEWS_SETTINGS_BUTTON));
-//
-//        KeyboardRow thirdKeyboardRow = new KeyboardRow();
-//        thirdKeyboardRow.add(new KeyboardButton(telegramHandler.TWITTER_SETTINGS_BUTTON));
-//
-//        KeyboardRow fourthKeyboardRow = new KeyboardRow();
-//        fourthKeyboardRow.add(new KeyboardButton(telegramHandler.NOTIFICATION_SETTINGS_BUTTON));
-//
-//        KeyboardRow fifthKeyboadRow = new KeyboardRow();
-//        fifthKeyboadRow.add(new KeyboardButton(telegramHandler.BACK_BUTTON));
-//
-//        keyboard.add(firstKeyboardRow);
-//        keyboard.add(secondKeyboardRow);
-//        keyboard.add(thirdKeyboardRow);
-//        keyboard.add(fourthKeyboardRow);
-//        keyboard.add(fifthKeyboadRow);
-//
-//        replyKeyboardMarkup.setKeyboard(keyboard);
-//
-//        return replyKeyboardMarkup;
-//    }
-
     public ReplyKeyboardMarkup getWeatherSettingsKeyboard(TelegramUser user,
                                                           NotificationServiceSettingsRepository notificationServiceSettingsRepository) {
         ReplyKeyboardMarkup replyKeyboardMarkup = getTunedReplyKeyboardMarkup();
@@ -196,16 +140,10 @@ public class TelegramKeyboards {
         firstKeyboardRow.add(new KeyboardButton(telegramHandler.LIST_FOLLOWING_CITIES_BUTTON));
 
         KeyboardRow secondKeyboardRow = new KeyboardRow();
-//        secondKeyboardRow.add(new KeyboardButton(telegramHandler.ADD_CITY_WEATHER_BUTTON));
-//        secondKeyboardRow.add(new KeyboardButton(telegramHandler.REMOVE_CITY_WEATHER_BUTTON));
         secondKeyboardRow.add(new KeyboardButton(telegramHandler.BACK_BUTTON));
-
-//        KeyboardRow thirdKeyboardRow = new KeyboardRow();
-//        thirdKeyboardRow.add(new KeyboardButton(telegramHandler.BACK_BUTTON));
 
         keyboard.add(firstKeyboardRow);
         keyboard.add(secondKeyboardRow);
-//        keyboard.add(thirdKeyboardRow);/
 
         replyKeyboardMarkup.setKeyboard(keyboard);
 

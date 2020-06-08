@@ -5,17 +5,6 @@ import {ApiService} from '../api/api.service';
 import {NewsDataService} from './news-data.service';
 import {PageEvent} from '@angular/material/paginator';
 
-// export class UpdateCountOfViews {
-//   countOfViews: number;
-//
-//   // tslint:disable-next-line:ban-types
-//   @Output() saveCountOfViews = new EventEmitter<String>();
-//
-//   saveCount(): void {
-//     this.countOfViews.emit();
-//   }
-// }
-
 export interface News {
   position: number;
   delta: number;
