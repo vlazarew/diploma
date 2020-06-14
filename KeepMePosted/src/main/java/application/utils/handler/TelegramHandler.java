@@ -291,12 +291,19 @@ public class TelegramHandler implements TelegramMessageHandler {
     public void sendTextMessageForecastAboutFollowingCities(Long chatId, TelegramUser telegramUser, boolean isUserLocation) {
         WeatherSettings weatherSettings = weatherSettingsRepository.findByUserId(telegramUser.getId());
         Set<WeatherCity> weatherCities = weatherSettings.getCities();
+        Date userLastDate = weatherSettings.getLastCityCreationDate();
+
+        weatherSettings.setLastCityCreationDate(null);
+        weatherSettingsRepository.save(weatherSettings);
 
         List<String> textList = new ArrayList<>();
         for (int index = 0; index < weatherCities.size(); index++) {
             textList.add(getCityInfo(telegramUser, false, true));
         }
         textList.forEach(text -> sendTextMessageReplyKeyboardMarkup(chatId, text, null, null));
+
+        weatherSettings.setLastCityCreationDate(userLastDate);
+        weatherSettingsRepository.save(weatherSettings);
     }
 
     @Override
