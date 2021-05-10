@@ -1,0 +1,22 @@
+.logoName {
+  padding-top: 2px;
+  text-decoration: none;
+  color: white;
+  text-align: center;
+  vertical-align: middle;
+}
+
+img {
+  padding-top: 12px;
+  padding-left: 50px;
+  width: 46px;
+  height: 46px;
+}
+
+
+
+.profile {
+  margin-right: 0;
+  margin-left: auto;
+}
+
