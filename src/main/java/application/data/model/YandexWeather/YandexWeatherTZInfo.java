@@ -1,25 +1,22 @@
 package application.data.model.YandexWeather;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Data
-@EqualsAndHashCode(of = {"id"})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Table(name = "weather_TZ_Info")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class YandexWeatherTZInfo {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy =  GenerationType.IDENTITY)
     Long id;
 
     // Часовой пояс в секундах от UTC.

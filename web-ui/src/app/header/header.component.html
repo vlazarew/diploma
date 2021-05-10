@@ -1,0 +1,33 @@
+<mat-toolbar color="primary">
+  <span><a routerLink="/home" class="logoName">Keep me posted App</a></span>
+  <span><a routerLink="/home"><img src="assets/icon.jpg" alt="Логотип"/></a></span>
+
+<!--  <mat-button-toggle-group appearance="legacy" name="fontStyle" aria-label="Font Style">-->
+<!--    <mat-button-toggle value="bold">Bold</mat-button-toggle>-->
+<!--    <mat-button-toggle value="italic">Italic</mat-button-toggle>-->
+<!--    <mat-button-toggle value="underline">Underline</mat-button-toggle>-->
+<!--  </mat-button-toggle-group>-->
+
+  <div class="profile">
+    <div *ngIf="registered">
+      <button mat-button [matMenuTriggerFor]="userInfo">{{user.firstname}} {{user.lastname}}</button>
+      <mat-menu #userInfo="matMenu">
+        <a mat-menu-item routerLink="/profile">
+          <mat-icon>person</mat-icon>
+          Профиль
+        </a>
+        <a mat-menu-item routerLink="/settings">
+          <mat-icon>settings</mat-icon>
+          Настройки
+        </a>
+        <a mat-menu-item routerLink="/logout">
+          <mat-icon>power_settings_new</mat-icon>
+          Выход
+        </a>
+      </mat-menu>
+    </div>
+  </div>
+
+
+
+</mat-toolbar>

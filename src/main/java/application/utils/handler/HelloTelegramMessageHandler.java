@@ -1,42 +1,39 @@
 package application.utils.handler;
 
+import application.data.model.telegram.TelegramMessage;
 import application.data.model.telegram.TelegramUpdate;
 import application.data.model.telegram.TelegramUser;
-import application.telegram.TelegramBot;
-import application.telegram.TelegramKeyboards;
-import application.telegram.TelegramSendMessage;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequiredArgsConstructor
-public class HelloTelegramMessageHandler implements TelegramMessageHandler {
-    TelegramBot telegramBot;
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@EnableAsync
+public class HelloTelegramMessageHandler extends TelegramHandler {
 
     @Override
-    public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
-        // Если не текст или не кнопка "Привет" или старт приложения
-        if (!isText || (!telegramUpdate.getMessage().getText().startsWith(TelegramBot.START_COMMAND)
-                && !telegramUpdate.getMessage().getText().equals(TelegramBot.HELLO_BUTTON))) {
+    @Async
+    public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
+        if (!hasText) {
             return;
         }
 
-        Long chatId = telegramUpdate.getMessage().getChat().getId();
-        TelegramUser telegramUser = telegramUpdate.getMessage().getFrom();
-        String text = Stream.of("Привет, ", telegramUser.getLastName(), telegramUser.getFirstName())
-                .filter(Objects::nonNull)
-                .collect(Collectors.joining(" "));
+        TelegramMessage telegramMessage = telegramUpdate.getMessage();
+        String messageText = telegramMessage.getText();
 
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(telegramUser);
-        TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, telegramBot, null,
-                null, null);
+        if (!messageText.startsWith(START_COMMAND)
+                && !messageText.equals(HELLO_BUTTON)) {
+            return;
+        }
+
+
+        Long chatId = telegramMessage.getChat().getId();
+        TelegramUser telegramUser = telegramMessage.getFrom();
+        String text = "Привет, " + telegramUser.getLastName() + " " + telegramUser.getFirstName();
+
+        sendMessageToUserByCustomMainKeyboard(chatId, telegramUser, text, null);
     }
 }

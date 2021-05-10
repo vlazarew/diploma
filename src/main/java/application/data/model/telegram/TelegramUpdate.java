@@ -3,26 +3,22 @@ package application.data.model.telegram;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-import java.time.LocalDateTime;
+import javax.persistence.*;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
-@EqualsAndHashCode(of = {"id"})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class TelegramUpdate {
+@Table(indexes = {@Index(columnList = "message_id", name = "update_message_id_index")})
+public class TelegramUpdate extends AbstractTelegramEntity {
 
     @Id
     Integer id;
 
-    LocalDateTime creationDate;
-
     @OneToOne
+    @JoinColumn(name = "message_id")
     TelegramMessage message;
 
 }

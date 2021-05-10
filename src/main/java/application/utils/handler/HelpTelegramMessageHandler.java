@@ -1,38 +1,39 @@
 package application.utils.handler;
 
+import application.data.model.telegram.TelegramMessage;
 import application.data.model.telegram.TelegramUpdate;
 import application.data.model.telegram.TelegramUser;
-import application.telegram.TelegramBot;
-import application.telegram.TelegramKeyboards;
-import application.telegram.TelegramSendMessage;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequiredArgsConstructor
-public class HelpTelegramMessageHandler implements TelegramMessageHandler {
-    TelegramBot telegramBot;
+@EnableAsync
+public class HelpTelegramMessageHandler extends TelegramHandler {
 
     @Override
-    public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
+    @Async
+    public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
         // Если не текст и не кнопка "Помощь"
-        if (!isText || !telegramUpdate.getMessage().getText().startsWith(TelegramBot.HELP_BUTTON)) {
+        if (!hasText) {
             return;
         }
 
-        Long chatId = telegramUpdate.getMessage().getChat().getId();
-        TelegramUser user = telegramUpdate.getMessage().getFrom();
-        String text = (telegramUpdate.getMessage().getFrom().getRegistered() != null &&
-                telegramUpdate.getMessage().getFrom().getRegistered()) ? "Мы поможем тебе" :
+        TelegramMessage telegramMessage = telegramUpdate.getMessage();
+        String messageText = telegramMessage.getText();
+
+        if (!messageText.startsWith(HELP_BUTTON)) {
+            return;
+        }
+
+        Long chatId = telegramMessage.getChat().getId();
+        TelegramUser user = telegramMessage.getFrom();
+        String text = (user.getRegistered() != null && user.getRegistered()) ? "Мы поможем тебе" :
                 "Мы помогаем только авторизированным пользователям";
 
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(user);
-        TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, text, replyKeyboardMarkup, telegramBot, null,
-                null, null);
+        sendMessageToUserByCustomMainKeyboard(chatId, user, text, null);
     }
 }

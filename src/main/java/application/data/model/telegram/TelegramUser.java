@@ -5,25 +5,23 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
-@EqualsAndHashCode(of = {"id"})
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name = "users")
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class TelegramUser {
+public class TelegramUser extends AbstractTelegramEntity {
 
     @Id
     Integer id;
 
-    LocalDateTime creationDate;
     String userName;
     Boolean bot;
-    Boolean registered;
+    // false - Активируется блок с регистрацией, true - регистрации не будет
+    Boolean registered = true;
     String firstName;
     String lastName;
     String languageCode;

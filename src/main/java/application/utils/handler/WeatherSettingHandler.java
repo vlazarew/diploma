@@ -1,279 +1,288 @@
 package application.utils.handler;
 
-import application.data.model.YandexWeather.*;
-import application.data.model.service.ServiceSettings;
-import application.data.model.service.WeatherSettings;
-import application.data.model.service.WebService;
-import application.data.model.telegram.TelegramLocation;
-import application.data.model.telegram.TelegramUpdate;
-import application.data.model.telegram.TelegramUser;
-import application.data.model.telegram.UserStatus;
-import application.data.repository.service.ServiceSettingsRepository;
-import application.data.repository.service.WeatherSettingsRepository;
-import application.data.repository.telegram.TelegramChatRepository;
-import application.data.repository.telegram.TelegramLocationRepository;
-import application.data.repository.telegram.TelegramUserRepository;
-import application.service.geocoder.YandexGeoCoder;
-import application.service.weather.YandexWeatherService;
-import application.telegram.TelegramBot;
-import application.telegram.TelegramKeyboards;
-import application.telegram.TelegramSendMessage;
+import application.data.model.YandexWeather.WeatherCity;
+import application.data.model.news.NewsCategory;
+import application.data.model.service.*;
+import application.data.model.telegram.*;
+import application.data.repository.YandexWeather.WeatherCityRepository;
+import application.service.geocoder.YandexGeoCoderService;
+import com.google.inject.internal.cglib.proxy.$Callback;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Log4j2
-public class WeatherSettingHandler implements TelegramMessageHandler {
-    TelegramBot telegramBot;
-    TelegramUserRepository userRepository;
-    ServiceSettingsRepository serviceSettingsRepository;
-    WeatherSettingsRepository weatherSettingsRepository;
-    SettingsTelegramHandler settingsTelegramHandler;
-    TelegramChatRepository telegramChatRepository;
-    YandexWeatherService yandexWeatherService;
-    TelegramLocationRepository telegramLocationRepository;
+@EnableAsync
+public class WeatherSettingHandler extends TelegramHandler {
+
+    @Autowired
+    YandexGeoCoderService yandexGeoCoderService;
+
+    @Autowired
+    WeatherCityRepository weatherCityRepository;
+
+    final WebService webService = WebService.YandexWeather;
+
 
     @Override
-    public void handle(TelegramUpdate telegramUpdate, boolean isText, boolean isContact, boolean isLocation) {
-        Long chatId = telegramUpdate.getMessage().getChat().getId();
-        TelegramUser user = telegramUpdate.getMessage().getFrom();
+    @Async
+    public void handle(TelegramUpdate telegramUpdate, boolean hasText, boolean hasContact, boolean hasLocation) {
+        TelegramMessage telegramMessage = telegramUpdate.getMessage();
+        Long chatId = telegramMessage.getChat().getId();
+        TelegramUser user = telegramMessage.getFrom();
         UserStatus status = user.getStatus();
 
-        if (isLocation) {
-            switch (status) {
-                case WeatherSettings: {
-                    if (user.getLocation().getCity() == null) {
-                        sendWeatherSettingsMessage(user, chatId, "По вашей геопозиции не найден город. Добавьте его вручную", null);
-                        return;
-                    }
+        if (hasLocation) {
+            locationHandler(chatId, user, status);
+            return;
+        }
 
-                    String city = user.getLocation().getCity();
+        if (!hasText) {
+            return;
+        }
 
-                    String messageToUser = addWeatherSettingsToUser(user, WebService.YandexWeather, city) ?
-                            "Город " + city + " добавлен в список отслеживаемых" : "Город " + city + " уже отслеживается вами";
+        String userAnswer = telegramMessage.getText();
+        textHandler(chatId, user, userAnswer, status);
+    }
 
-                    sendWeatherSettingsMessage(user, chatId, messageToUser, null);
-                    break;
-                }
-                case MainPage: {
+    // region Location methods
 
-                    String messageToUser = saveWeatherInfoAndDoMessageToUser(user, true);
-
-                    ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getCustomReplyMainKeyboardMarkup(user);
-                    TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, messageToUser, replyKeyboardMarkup,
-                            telegramBot, null, null, null);
-
-                    break;
-                }
+    private void locationHandler(Long chatId, TelegramUser user, UserStatus status) {
+        switch (status) {
+            case WeatherSettings: {
+                addCityToFollow(chatId, user);
+                break;
             }
-        } else if (isText) {
-            String userAnswer = telegramUpdate.getMessage().getText();
-
-            switch (userAnswer) {
-                case TelegramBot.SETTINGS_BACK_BUTTON: {
-                    if (user.getStatus() == UserStatus.WeatherSettings) {
-                        TelegramSendMessage.sendSettingsKeyboard(chatId, "Настройки бота", telegramBot,
-                                UserStatus.Settings, userRepository, telegramChatRepository);
-                    }
-                    break;
-                }
-                case TelegramBot.ACTIVATE_WEATHER_BUTTON: {
-                    ServiceSettings serviceSettings = serviceSettingsRepository.findByUserAndService(user, WebService.YandexWeather);
-
-                    if (serviceSettings == null) {
-                        serviceSettings = ServiceSettings.builder()
-                                .service(WebService.YandexWeather)
-                                .user(user)
-                                .build();
-                    }
-
-                    serviceSettings.setActive(true);
-                    serviceSettingsRepository.save(serviceSettings);
-
-                    sendWeatherSettingsMessage(user, chatId, "Оповещения включены", null);
-                    break;
-                }
-                case TelegramBot.DEACTIVATE_WEATHER_BUTTON: {
-                    ServiceSettings serviceSettings = serviceSettingsRepository.findByUserAndService(user, WebService.YandexWeather);
-
-                    if (serviceSettings == null) {
-                        serviceSettings = ServiceSettings.builder()
-                                .service(WebService.YandexWeather)
-                                .user(user)
-                                .build();
-                    }
-
-                    serviceSettings.setActive(false);
-                    serviceSettingsRepository.save(serviceSettings);
-
-                    sendWeatherSettingsMessage(user, chatId, "Оповещения выключены", null);
-                    break;
-                }
-                case TelegramBot.ADD_CITY_WEATHER_BUTTON: {
-                    String listOfCities = listWeatherSettingToUser(user, WebService.YandexWeather);
-                    ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getAddDeleteCityKeyboardMarkup();
-                    TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, listOfCities + "\r\n\r\n\r\n" +
-                                    "Введите добавляемый город",
-                            replyKeyboardMarkup, telegramBot, UserStatus.AddCity, userRepository, telegramChatRepository);
-                    break;
-                }
-                case TelegramBot.REMOVE_CITY_WEATHER_BUTTON: {
-                    String listOfCities = listWeatherSettingToUser(user, WebService.YandexWeather);
-                    String userMessage = listOfCities.equals("Список отслеживаемых городов пуст") ? listOfCities :
-                            listOfCities + "\r\n\r\n\r\n" + "Введите удаляемый город";
-
-                    ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getAddDeleteCityKeyboardMarkup();
-                    TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, userMessage,
-                            replyKeyboardMarkup, telegramBot, UserStatus.RemoveCity, userRepository, telegramChatRepository);
-                    break;
-                }
-                case TelegramBot.LIST_FOLLOWING_CITIES_BUTTON: {
-                    String listOfCities = listWeatherSettingToUser(user, WebService.YandexWeather);
-                    sendWeatherSettingsMessage(user, chatId, listOfCities, null);
-                    break;
-                }
-                case TelegramBot.CANCEL_BUTTON: {
-                    if (status == UserStatus.AddCity) {
-                        sendWeatherSettingsMessage(user, chatId, "Добавление города отмено", UserStatus.WeatherSettings);
-                    }
-                    if (status == UserStatus.RemoveCity) {
-                        sendWeatherSettingsMessage(user, chatId, "Удаление города отмено", UserStatus.WeatherSettings);
-                    }
-                    break;
-                }
-                case TelegramBot.WEATHER_IN_CURRENT_LOCATION_BUTTON: {
-                    break;
-                }
-                default: {
-                    if (status == UserStatus.AddCity) {
-                        String messageToUser = addWeatherSettingsToUser(user, WebService.YandexWeather, userAnswer) ?
-                                "Город " + userAnswer + " добавлен в список отслеживаемых" : "Город " + userAnswer + " уже отслеживается вами";
-
-                        sendWeatherSettingsMessage(user, chatId, messageToUser, UserStatus.WeatherSettings);
-                    }
-                    if (status == UserStatus.RemoveCity) {
-                        String messageToUser = removeWeatherSettingsToUser(user, WebService.YandexWeather, userAnswer) ?
-                                "Город " + userAnswer + " удален из списка отслеживаемых" : "Город " + userAnswer + " не отслеживался вами";
-
-                        sendWeatherSettingsMessage(user, chatId, messageToUser, UserStatus.WeatherSettings);
-                    }
-                    break;
-                }
+            case WeatherWatch: {
+//                sendTextMessageForecastAboutFollowingCities(chatId, user, true);
+                sendWeatherWatchKeyboard(chatId, user, UserStatus.WeatherWatch, true, true);
+                break;
             }
         }
     }
 
-    private void sendWeatherSettingsMessage(TelegramUser user, Long chatId, String text, UserStatus status) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = TelegramKeyboards.getWeatherSettingsKeyboard(user, serviceSettingsRepository);
-        TelegramSendMessage.sendTextMessageReplyKeyboardMarkup(chatId, text,
-                replyKeyboardMarkup, telegramBot, status, userRepository, telegramChatRepository);
+    private void addCityToFollow(Long chatId, TelegramUser user) {
+        String messageToUser;
+        String city = user.getLocation().getCity();
+
+        if (city == null) {
+            messageToUser = "По вашей геопозиции не найден город. Добавьте его вручную";
+        } else {
+            messageToUser = addWeatherSettingsToUser(user, city) ?
+                    "Город " + city + " добавлен в список отслеживаемых" : "Город " + city + " уже отслеживается вами";
+        }
+
+        sendWeatherSettingsMessage(chatId, user, messageToUser, null);
     }
 
     @Transactional
-    boolean addWeatherSettingsToUser(TelegramUser user, WebService webService, String city) {
+    boolean addWeatherSettingsToUser(TelegramUser user, String cityText) {
+        NotificationServiceSettings notificationServiceSettings = saveFindServiceSettings(user, webService);
 
-        ServiceSettings serviceSettings = serviceSettingsRepository.findByUserAndService(user, webService);
-        if (serviceSettings == null) {
-
-            serviceSettings = new ServiceSettings();
-            serviceSettings.setService(webService);
-            serviceSettings.setUser(user);
-
-            serviceSettingsRepository.save(serviceSettings);
-        }
-
-        WeatherSettings weatherSettings = weatherSettingsRepository.findByUserIdAndCity(user.getId(), city);
-        boolean needToCreateNewRule = (weatherSettings == null);
+        WeatherSettings weatherSettings = weatherSettingsRepository.findByUserId(user.getId());
+        boolean needToCreateNewRule = (weatherSettings == null || cityText.equals(""));
         if (needToCreateNewRule) {
+            saveWeatherSettings(user, cityText, notificationServiceSettings);
+        } else {
+            Set<WeatherCity> cities = weatherSettings.getCities();
+            WeatherCity city = findCreateWeatherCity(cityText);
+            needToCreateNewRule = (!cities.contains(city));
 
-            HashMap<String, Float> longitudeLongitude = YandexGeoCoder.getCoordinatesByCity(city);
-
-            weatherSettings = new WeatherSettings();
-            weatherSettings.setCity(city);
-            weatherSettings.setUser(user);
-            if (longitudeLongitude != null) {
-                weatherSettings.setLatitude(longitudeLongitude.get("latitude"));
-                weatherSettings.setLongitude(longitudeLongitude.get("longitude"));
+            if (needToCreateNewRule) {
+                cities.add(city);
+                weatherSettings.setCities(cities);
+                weatherSettingsRepository.save(weatherSettings);
             }
-            weatherSettings.setServiceSettings(serviceSettings);
-
-            weatherSettingsRepository.save(weatherSettings);
         }
 
         return needToCreateNewRule;
     }
 
-    @Transactional
-    boolean removeWeatherSettingsToUser(TelegramUser user, WebService webService, String city) {
-        WeatherSettings weatherSettings = weatherSettingsRepository.findByUserIdAndCity(user.getId(), city);
-        boolean needToDelete = (weatherSettings != null);
-        if (needToDelete) {
-            weatherSettingsRepository.delete(weatherSettings);
-        }
+    private void saveWeatherSettings(TelegramUser user, String city, NotificationServiceSettings notificationServiceSettings) {
+        WeatherCity weatherCity = findCreateWeatherCity(city);
 
-        return needToDelete;
+        WeatherSettings weatherSettings = new WeatherSettings();
+        Set<WeatherCity> weatherCities = new HashSet<>();
+        weatherCities.add(weatherCity);
+        weatherSettings.setCities(weatherCities);
+        weatherSettings.setUser(user);
+
+        weatherSettings.setNotificationServiceSettings(notificationServiceSettings);
+
+        weatherSettingsRepository.save(weatherSettings);
     }
 
-    private String listWeatherSettingToUser(TelegramUser user, WebService webService) {
-        List<WeatherSettings> weatherSettings = weatherSettingsRepository.findByUserId(user.getId());
-        String headerMessage = weatherSettings.size() > 0 ? ("Список отслеживаемых городов: " + "\r\n\r\n")
-                : "Список отслеживаемых городов пуст";
+    private WeatherCity findCreateWeatherCity(String city) {
+        WeatherCity weatherCity = weatherCityRepository.findByName(city);
+        if (weatherCity == null) {
+            HashMap<String, Float> longitudeLongitude = yandexGeoCoderService.getCoordinatesByCity(city);
+            weatherCity = new WeatherCity();
+            weatherCity.setName(city);
+            if (longitudeLongitude != null) {
+                weatherCity.setLatitude(longitudeLongitude.get("latitude"));
+                weatherCity.setLongitude(longitudeLongitude.get("longitude"));
+            }
+            weatherCityRepository.save(weatherCity);
+        }
+
+        return weatherCity;
+    }
+    //endregion
+
+    //region Text methods
+
+    private void textHandler(Long chatId, TelegramUser user, String userAnswer, UserStatus status) {
+        boolean isWeatherStatus = (status == UserStatus.WeatherMainPage || status == UserStatus.WeatherWatch);
+
+        if (userAnswer.equals(BACK_BUTTON)) {
+            backButtonHandler(chatId, user, status);
+        } else if (userAnswer.equals(WEATHER_BUTTON)) {
+            sendNewsTwitterMainPageKeyboard(chatId, user, "Раздел «Яндекс.Погода»", UserStatus.WeatherMainPage);
+        } else if (userAnswer.equals(ACTIVATE_NEWS_BUTTON) & status == UserStatus.WeatherSettings) {
+            saveServiceSettings(user, true, webService);
+            sendWeatherSettingsMessage(chatId, user, "Оповещения включены", null);
+        } else if (userAnswer.equals(DEACTIVATE_NEWS_BUTTON) & status == UserStatus.WeatherSettings) {
+            saveServiceSettings(user, false, webService);
+            sendWeatherSettingsMessage(chatId, user, "Оповещения выключены", null);
+        } else if (userAnswer.equals(LIST_FOLLOWING_CITIES_BUTTON)) {
+            String messageToUser = listWeatherLocationsToUser(user);
+            sendCommonAddDeleteKeyboard(chatId, messageToUser, UserStatus.LocationList);
+        } else if (status == UserStatus.LocationList) {
+            locationListHandler(chatId, user, userAnswer);
+        } else if (userAnswer.equals(CANCEL_BUTTON) && (status == UserStatus.AddCity || status == UserStatus.RemoveCity)) {
+            String messageToUser = getMessageToUser(status);
+            sendWeatherSettingsMessage(chatId, user, messageToUser, UserStatus.WeatherSettings);
+        } else if ((status == UserStatus.AddCity || status == UserStatus.RemoveCity)) {
+            sendAddRemoveMessageToUser(chatId, user, userAnswer, status);
+        } else if (((userAnswer.equals(WATCH_BUTTON) || userAnswer.equals(NEXT_ITEM_BUTTON)) & isWeatherStatus)) {
+            sendWeatherWatchKeyboard(chatId, user, UserStatus.WeatherWatch, true, false);
+        } else if (userAnswer.equals(PREVIOUS_ITEM_BUTTON) & isWeatherStatus) {
+            sendWeatherWatchKeyboard(chatId, user, UserStatus.WeatherWatch, false, false);
+        } else if (userAnswer.equals(EXIT_WATCH_BUTTON) & isWeatherStatus) {
+            sendNewsTwitterMainPageKeyboard(chatId, user, "Раздел Яндекс.Погода", UserStatus.WeatherMainPage);
+        } else if (userAnswer.equals(FIRST_ITEM_BUTTON) & isWeatherStatus) {
+            clearUserWeatherHistory(user, chatId);
+//        } else if (userAnswer.equals(WEATHER_IN_CURRENT_LOCATION_BUTTON)) {
+//            sendWeatherWatchKeyboard(chatId, user, UserStatus.WeatherWatch, true, true);
+        }
+    }
+
+    private void clearUserWeatherHistory(TelegramUser telegramUser, Long chatId) {
+        WeatherSettings weatherSettings = weatherSettingsRepository.findByUserId(telegramUser.getId());
+        if (weatherSettings == null) {
+            return;
+        }
+
+        weatherSettings.setLastViewedWeatherCity(null);
+        weatherSettings.setLastCityCreationDate(new Date());
+        weatherSettings.setViewedCities(new HashSet<>());
+        weatherSettingsRepository.save(weatherSettings);
+
+        sendWeatherWatchKeyboard(chatId, telegramUser, UserStatus.WeatherWatch, true, false);
+    }
+
+    private void sendAddRemoveMessageToUser(Long chatId, TelegramUser user, String userAnswer, UserStatus status) {
+        String messageToUser;
+        if (status == UserStatus.AddCity) {
+            messageToUser = addWeatherSettingsToUser(user, userAnswer)
+                    ? "Город *" + userAnswer + "* добавлен в список отслеживаемых"
+                    : "Город *" + userAnswer + "* уже отслеживается вами";
+        } else if (status == UserStatus.RemoveCity) {
+            messageToUser = removeWeatherSettingsToUser(user, userAnswer)
+                    ? "Город *" + userAnswer + "* удален из списка отслеживаемых"
+                    : "Город *" + userAnswer + "* не отслеживается вами";
+        } else {
+            return;
+        }
+
+        sendCommonAddDeleteKeyboard(chatId, messageToUser, UserStatus.LocationList);
+    }
+
+    private String getMessageToUser(UserStatus status) {
+        String messageToUser = "";
+        if (status == UserStatus.AddCity) {
+            messageToUser = "Добавление города отменено";
+        } else if (status == UserStatus.RemoveCity) {
+            messageToUser = "Удаление города отменено";
+        }
+        return messageToUser;
+    }
+
+    private void locationListHandler(Long chatId, TelegramUser user, String userAnswer) {
+        if (userAnswer.equals(COMMON_ADD)) {
+            String listOfCities = listWeatherLocationsToUser(user);
+            String messageToUser = listOfCities + "\r\n\r\n" + "Введите добавляемый город";
+            sendTextMessageAddDeleteSomething(chatId, messageToUser, UserStatus.AddCity);
+        } else if (userAnswer.equals(COMMON_DELETE)) {
+            String listOfCities = listWeatherLocationsToUser(user);
+            String messageToUser = listOfCities + "\r\n\r\n" + "Введите удаляемый город";
+            sendTextMessageAddDeleteSomething(chatId, messageToUser, UserStatus.RemoveCity);
+        }
+    }
+
+    private String listWeatherLocationsToUser(TelegramUser user) {
+        WeatherSettings weatherSettings = weatherSettingsRepository.findByUserId(user.getId());
+        if (weatherSettings == null) {
+//            addWeatherSettingsToUser(user, "");
+            return "*Список отслеживаемых городов пуст*";
+        }
+
+        Set<WeatherCity> weatherCities = weatherSettings.getCities();
+        String headerMessage = !weatherCities.isEmpty() ? ("*Список отслеживаемых городов:* " + "\r\n\r\n")
+                : "*Список отслеживаемых городов пуст*";
         StringBuilder stringBuilder = new StringBuilder(headerMessage);
         AtomicInteger count = new AtomicInteger();
 
-        weatherSettings.forEach(weatherSetting -> {
+        weatherCities.forEach(weatherCity -> {
             count.getAndIncrement();
-
-            stringBuilder.append(count).append(". ").append(weatherSetting.getCity());
+            stringBuilder.append(count).append(". ").append(weatherCity.getName()).append("\r\n");
         });
 
         return stringBuilder.toString();
     }
 
+    private void backButtonHandler(Long chatId, TelegramUser user, UserStatus status) {
+        if (status == UserStatus.WeatherMainPage) {
+            sendMessageToUserByCustomMainKeyboard(chatId, user, "Главная страница", UserStatus.MainPage);
+        } else if (status == UserStatus.WeatherSettings) {
+            sendCommonSettingKeyboard(chatId, "Настройки погоды", UserStatus.WeatherCommonSettings);
+        } else if (status == UserStatus.LocationList || status == UserStatus.SourcesList) {
+            sendWeatherSettingsMessage(chatId, user, "Настройки рассылки погоды", UserStatus.WeatherSettings);
+        }
+    }
+
     @Transactional
-    String saveWeatherInfoAndDoMessageToUser(TelegramUser user, boolean isUserLocation) {
-        float longitude = user.getLocation().getLongitude();
-        float latitude = user.getLocation().getLatitude();
+    boolean removeWeatherSettingsToUser(TelegramUser user, String city) {
+        WeatherSettings weatherSettings = weatherSettingsRepository.findByUserId(user.getId());
 
-        YandexWeather weather = yandexWeatherService.getWeatherByCoordinates(Float.toString(longitude), Float.toString(latitude));
-        String messageToUser;
-
-        if (weather == null) {
-            messageToUser = "По вашему месторасположению не найдено информации о погоде!";
-        } else {
-            if (isUserLocation) {
-                YandexWeatherTZInfo tzInfo = weather.getInfo().getTzInfo();
-                user.setTzInfo(tzInfo);
-                TelegramLocation location = user.getLocation();
-                location.setTzInfo(tzInfo);
-
-                userRepository.save(user);
-                telegramLocationRepository.save(location);
-            }
-
-            YandexWeatherFact fact = weather.getFact();
-            Set<YandexWeatherForecast> forecast = weather.getForecasts();
-
-            messageToUser = "Сегодня:" + "\r\n\r\n" +
-                    "Сейчас " + YandexWeatherService.englishWeatherConditionToRussian(fact.getWeatherCondition()).toLowerCase()
-                    + "\r\n" +
-                    "Температура воздуха: " + fact.getTemp() + " ℃, по ощущениям: " + fact.getFeelsLike() + " ℃" + "\r\n" +
-                    "Влажность: " + fact.getHumidity() + "%";
+        if (weatherSettings == null) {
+            return false;
         }
 
+        Set<WeatherCity> weatherCities = weatherSettings.getCities();
+        WeatherCity weatherCity = weatherCityRepository.findByName(city);
 
-        return messageToUser;
+        boolean needToDelete = (weatherCities.contains(weatherCity));
+        if (needToDelete) {
+            weatherCities.remove(weatherCity);
+            weatherSettings.setCities(weatherCities);
+            weatherSettingsRepository.save(weatherSettings);
+        }
+
+        return needToDelete;
     }
+    //endregion
+
+
 }

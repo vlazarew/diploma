@@ -1,8 +1,11 @@
 package application.data.model.telegram;
 
 public enum UserStatus {
-    NotRegistered, VerifyPhone, VerifyEmail, WeatherSettings, Settings, MainPage, AddCity, RemoveCity,
-    QueryWeatherInLocationCity;
+    NotRegistered, VerifyPhone, VerifyEmail, MainPage,
+    WeatherMainPage, WeatherCommonSettings, WeatherSettings, LocationList,  AddCity, RemoveCity, QueryWeatherInLocationCity, WeatherWatch,
+    NewsNotificationSettings, TwitterNotificationSettings, WeatherNotificationSettings,
+    NewsMainPage, NewsCommonSettings, NewsSettings, CategoriesList, SourcesList, AddCategory, RemoveCategory, AddSource, RemoveSource, NewsWatch,
+    TwitterMainPage, TwitterCommonSettings, TwitterSettings, HashtagsList, PeoplesList, AddPeople, RemovePeople, AddHashtag, RemoveHashtag, TwitterWatch;
 
     private static UserStatus[] userStatuses;
 
