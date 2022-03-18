@@ -29,3 +29,5 @@ build/
 
 ### VS Code ###
 .vscode/
+
+/KeepMePosted/web-ui/node_modules
